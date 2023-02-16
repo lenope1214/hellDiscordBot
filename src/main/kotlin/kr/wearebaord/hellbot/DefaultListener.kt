@@ -1,15 +1,43 @@
 package kr.wearebaord.hellbot
 
+import kr.wearebaord.hellbot.configs.Config
 import kr.wearebaord.hellbot.utils.KoreanUtil
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import org.slf4j.LoggerFactory
 
-class Bot : ListenerAdapter() {
+class DefaultListener : ListenerAdapter() {
+    val PREFIX: String = Config.getEnvByKey("prefix")!!
+    val OWNER_ID = Config.getEnvByKey("owner_id") ?: "0"
 
-    val log = LoggerFactory.getLogger(Bot::class.java)
+    val log = LoggerFactory.getLogger(DefaultListener::class.java)
+
+    override fun onReady(event: ReadyEvent) {
+        log.info("Logged in as ${event.jda.selfUser.name}")
+    }
+
+    override fun onMessageReceived(event: MessageReceivedEvent) {
+        val raw: String = event.message.contentRaw
+
+
+        if (event.author.isBot) return // 봇이면 진행하지 않는다.
+        // raw의 대소문자에 상관없이 prefix로 시작하는지 확인한다.
+        if (!raw.startsWith(PREFIX, ignoreCase = true)) return
+        if (!(event.author.id == OWNER_ID || event.member?.hasPermission(Permission.ADMINISTRATOR) == true)) {
+            event.message.delete().queue()
+            event.channel.sendMessage("권한이 없습니다.").queue()
+        }
+
+        // prefix + "shutdown"이라면 봇을 종료한다.
+        if (raw.equals(PREFIX + "shutdown", ignoreCase = true)) {
+            log.info("Shutdown command received from ${event.author.name}")
+            event.jda.shutdown()
+        }
+    }
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
         // make sure we handle the right command
@@ -20,6 +48,7 @@ class Bot : ListenerAdapter() {
                     .flatMap { event.hook.editOriginalFormat("Pong: %d ms", System.currentTimeMillis() - time) }
                     .queue()
             }
+
             "놀리기" -> {
                 if (!event.member?.hasPermission(Permission.MESSAGE_SEND)!!) {
                     event.reply("You cannot Send Message ;)").setEphemeral(true).queue()
@@ -55,6 +84,7 @@ class Bot : ListenerAdapter() {
 
                 makeMessage(event, str)
             }
+
             "사실부탁임" -> {
                 makeMessage(
                     event, """

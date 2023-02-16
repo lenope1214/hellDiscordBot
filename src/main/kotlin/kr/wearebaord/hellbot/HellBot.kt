@@ -1,8 +1,9 @@
 package kr.wearebaord.hellbot
 
-import kr.wearebaord.hellbot.configs.TOKEN
+import kr.wearebaord.hellbot.configs.Config
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
@@ -18,9 +19,17 @@ fun makeMessage(event: SlashCommandInteractionEvent, message: String) {
 
 fun main() {
 
-    val jdaBuilder = JDABuilder.createDefault(TOKEN)
+    val jdaBuilder = JDABuilder.createDefault(Config.getEnvByKey("token"))
     val jda: JDA = configureMemoryUsage(jdaBuilder)
-        .addEventListeners(Bot())
+        .setActivity(Activity.playing("열정을 다해 놀리기를"))
+        .enableIntents(
+            GatewayIntent.MESSAGE_CONTENT,
+            GatewayIntent.GUILD_PRESENCES,
+            GatewayIntent.GUILD_MEMBERS,
+            GatewayIntent.GUILD_MESSAGES,
+            GatewayIntent.GUILD_MESSAGE_REACTIONS,
+        )
+        .addEventListeners(DefaultListener())
         .build()
 
     // Sets the global command list to the provided commands (removing all others)
