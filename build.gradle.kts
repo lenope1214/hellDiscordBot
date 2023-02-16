@@ -28,6 +28,9 @@ dependencies {
     api("ch.qos.logback:logback-classic:1.2.8")
     api("com.squareup.okhttp3:okhttp:4.9.3")
 
+    // YOUTUBE MUSIC SUPPORT https://github.com/sedmelluq/lavaplayer
+
+    api("com.sedmelluq:lavaplayer:1.3.77")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     api(kotlin("stdlib-jdk8"))
 

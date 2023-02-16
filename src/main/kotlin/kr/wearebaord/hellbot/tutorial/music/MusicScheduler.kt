@@ -1,0 +1,116 @@
+package kr.wearebaord.hellbot.tutorial.music
+
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
+import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
+import kr.wearebaord.hellbot.tutorial.MessageDispatcher
+import net.dv8tion.jda.api.entities.Message
+import java.util.concurrent.BlockingDeque
+import java.util.concurrent.LinkedBlockingDeque
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
+
+class MusicScheduler(
+    private val player: AudioPlayer,
+    private val messageDispatcher: MessageDispatcher,
+    private val executorService: ScheduledExecutorService?
+) : AudioEventAdapter(), Runnable {
+    private val queue: BlockingDeque<AudioTrack?>
+    private val boxMessage: AtomicReference<Message?>
+    private val creatingBoxMessage: AtomicBoolean
+
+    init {
+        queue = LinkedBlockingDeque()
+        boxMessage = AtomicReference()
+        creatingBoxMessage = AtomicBoolean()
+        executorService!!.scheduleAtFixedRate(this, 3000L, 15000L, TimeUnit.MILLISECONDS)
+    }
+
+    fun addToQueue(audioTrack: AudioTrack?) {
+        queue.addLast(audioTrack)
+        startNextTrack(true)
+    }
+
+    fun drainQueue(): List<AudioTrack?> {
+        val drainedQueue: MutableList<AudioTrack?> = mutableListOf()
+        queue.drainTo(drainedQueue)
+        return drainedQueue
+    }
+
+    fun playNow(audioTrack: AudioTrack?, clearQueue: Boolean) {
+        if (clearQueue) {
+            queue.clear()
+        }
+        queue.addFirst(audioTrack)
+        startNextTrack(false)
+    }
+
+    fun skip() {
+        startNextTrack(false)
+    }
+
+    private fun startNextTrack(noInterrupt: Boolean) {
+        val next = queue.pollFirst()
+        if (next != null) {
+            if (!player.startTrack(next, noInterrupt)) {
+                queue.addFirst(next)
+            }
+        } else {
+            player.stopTrack()
+            messageDispatcher.sendMessage("Queue finished.")
+        }
+    }
+
+    override fun onTrackStart(player: AudioPlayer, track: AudioTrack) {
+        updateTrackBox(true)
+    }
+
+    override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
+        if (endReason.mayStartNext) {
+            startNextTrack(true)
+            messageDispatcher.sendMessage(String.format("Track %s finished.", track.info.title))
+        }
+    }
+
+    override fun onTrackStuck(player: AudioPlayer, track: AudioTrack, thresholdMs: Long) {
+        messageDispatcher.sendMessage(String.format("Track %s got stuck, skipping.", track.info.title))
+        startNextTrack(false)
+    }
+
+    override fun onPlayerResume(player: AudioPlayer) {
+        updateTrackBox(false)
+    }
+
+    override fun onPlayerPause(player: AudioPlayer) {
+        updateTrackBox(false)
+    }
+
+    private fun updateTrackBox(newMessage: Boolean) {
+        val track = player.playingTrack
+        if (track == null || newMessage) {
+            val message = boxMessage.getAndSet(null)
+            message?.delete()
+        }
+        if (track != null) {
+            val message = boxMessage.get()
+            val box = TrackBoxBuilder.buildTrackBox(80, track, player.isPaused, player.volume)
+            if (message != null) {
+                message.editMessage(box!!).queue()
+            } else {
+                if (creatingBoxMessage.compareAndSet(false, true)) {
+                    messageDispatcher.sendMessage(box, { created: Message? ->
+                        boxMessage.set(created)
+                        creatingBoxMessage.set(false)
+                    }) { error: Throwable? -> creatingBoxMessage.set(false) }
+                }
+            }
+        }
+    }
+
+    override fun run() {
+        updateTrackBox(false)
+    }
+}

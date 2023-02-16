@@ -6,16 +6,66 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
-import net.dv8tion.jda.api.events.session.ShutdownEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import org.slf4j.LoggerFactory
 
-class DefaultListener : ListenerAdapter() {
-    val log = LoggerFactory.getLogger(DefaultListener::class.java)
+class CommandListener : ListenerAdapter() {
+    val PREFIX: String = Config.getEnvByKey("prefix")!!
+    val OWNER_ID = Config.getEnvByKey("owner_id") ?: "0"
+
+    val log = LoggerFactory.getLogger(CommandListener::class.java)
 
     override fun onReady(event: ReadyEvent) {
         log.info("Logged in as ${event.jda.selfUser.name}")
+    }
+
+    override fun onMessageReceived(event: MessageReceivedEvent) {
+        val raw: String = event.message.contentRaw
+        if (event.channel.name != "헬파티봇") return
+        if (raw.startsWith(PREFIX)) log.info("raw : $raw")
+
+        if (event.author.isBot) return // 봇이면 진행하지 않는다.
+        // raw의 대소문자에 상관없이 prefix로 시작하는지 확인한다.
+        if (!raw.startsWith(PREFIX, ignoreCase = true)) return
+
+
+        when (raw.lowercase()) {
+            PREFIX + "help" -> {
+                event.channel.sendMessage("도움말").queue()
+            }
+            PREFIX + "shutdown" -> {
+                if (!(event.author.id == OWNER_ID || event.member?.hasPermission(Permission.ADMINISTRATOR) == true)) {
+                    event.message.delete().queue()
+                    event.channel.sendMessage("권한이 없습니다.").queue()
+                }
+
+                log.info("Shutdown command received from ${event.author.name}")
+                event.jda.shutdown()
+            }
+            PREFIX + "join" -> {
+                val channel = event.channel
+                val member = event.member
+                val selfVoiceState = member!!.voiceState
+
+                if (!selfVoiceState!!.inAudioChannel()) {
+                    channel.sendMessage("음성채널에 들어가주세요.").queue()
+                    return
+                }
+
+                val audioManager = event.guild.audioManager
+                val voiceChannel = selfVoiceState.channel
+
+                audioManager.openAudioConnection(voiceChannel)
+                channel.sendMessageFormat("음성채널에 연결되었습니다. (%s)", voiceChannel!!.name).queue()
+            }
+        }
+
+//        // prefix + "join"이라면 음성 채널에 참여
+//        if (raw.equals(PREFIX + "join", ignoreCase = true)) {
+//
+//        }
+
     }
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {

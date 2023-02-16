@@ -28,8 +28,15 @@ fun main() {
             GatewayIntent.GUILD_MEMBERS,
             GatewayIntent.GUILD_MESSAGES,
             GatewayIntent.GUILD_MESSAGE_REACTIONS,
+            GatewayIntent.GUILD_VOICE_STATES,
         )
-        .addEventListeners(DefaultListener())
+        .enableCache(
+            CacheFlag.VOICE_STATE, // voice state caching??
+        )
+        .addEventListeners(
+            DefaultListener(),
+            CommandListener(),
+        )
         .build()
 
     // Sets the global command list to the provided commands (removing all others)
