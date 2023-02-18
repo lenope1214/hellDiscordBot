@@ -5,6 +5,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 
@@ -18,7 +19,7 @@ class PlayerManager {
         AudioSourceManagers.registerLocalSource(this.audioPlayerManager)
     }
 
-    fun getMusicManager(guild: Guild): GuildMusicManager {
+    private fun getMusicManager(guild: Guild): GuildMusicManager {
         return this.musicManagers.computeIfAbsent(guild.idLong) {
             val guildMusicManagers = GuildMusicManager(this.audioPlayerManager)
             guild.audioManager.sendingHandler = guildMusicManagers.getSendHandler()
@@ -26,22 +27,34 @@ class PlayerManager {
         }
     }
 
-    fun loadandPlay(channel: TextChannel, trackUrl: String): Unit{
+    fun loadAndPlay(channel: TextChannel, trackUrl: String): Unit{
         val musicManager = this.getMusicManager(channel.guild).scheduler
         this.audioPlayerManager.loadItemOrdered(musicManager, trackUrl, object : AudioLoadResultHandler {
-            override fun trackLoaded(track: com.sedmelluq.discord.lavaplayer.track.AudioTrack) {
-                musicManager.queue(track)
-                channel.sendMessage("Adding to queue: `")
-                    .addContent(track.info.title)
-                    .addContent("` by `")
-                    .addContent(track.info.author)
-                    .queue()
+            override fun trackLoaded(track: AudioTrack) {
+                try{
+                    musicManager.queue(track)
+                    channel.sendMessage("Adding to queue: `")
+                        .addContent(track.info.title)
+                        .addContent("` by `")
+                        .addContent(track.info.author)
+                        .queue()
+                }catch (e: Exception){
+                    e.printStackTrace()
+                }
+
             }
 
             override fun playlistLoaded(playlist: com.sedmelluq.discord.lavaplayer.track.AudioPlaylist) {
-                playlist.tracks.forEach {
-                    musicManager.queue(it)
-                }
+                val tracks = playlist.tracks
+
+                channel.sendMessage("Adding to queue: `")
+                    .addContent(tracks[0].info.title)
+                    .addContent("` by `")
+                    .addContent(tracks[0].info.author)
+                    .addContent("` and ")
+                    .addContent((tracks.size - 1).toString())
+                    .addContent(" more tracks")
+                    .queue()
             }
 
             override fun noMatches() {

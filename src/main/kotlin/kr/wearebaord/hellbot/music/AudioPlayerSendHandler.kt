@@ -22,4 +22,8 @@ class AudioPlayerSendHandler(
     override fun provide20MsAudio(): ByteBuffer {
         return this.buffer.flip()
     }
+
+    override fun isOpus(): Boolean {
+        return true
+    }
 }

@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.events.session.ShutdownEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
+import net.dv8tion.jda.api.interactions.commands.OptionType
+import net.dv8tion.jda.api.interactions.commands.build.Commands
 import org.slf4j.LoggerFactory
 
 class DefaultListener : ListenerAdapter() {
@@ -16,6 +18,19 @@ class DefaultListener : ListenerAdapter() {
 
     override fun onReady(event: ReadyEvent) {
         log.info("Logged in as ${event.jda.selfUser.name}")
+
+        // Sets the global command list to the provided commands (removing all others)
+        event.jda.updateCommands().addCommands(
+            Commands.slash("ping", "Calculate ping of the bot"),
+            Commands.slash("놀리기", "대상을 놀립니다.")
+                .addOption(
+                    OptionType.STRING,
+                    "nickname",
+                    "놀릴 대상의 닉네임(이름)을 입력해주세요",
+                    true
+                ),
+            Commands.slash("사실부탁임", "사실부탁임 출력")
+        ).queue()
     }
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
@@ -31,12 +46,17 @@ class DefaultListener : ListenerAdapter() {
             "놀리기" -> {
                 if (!event.member?.hasPermission(Permission.MESSAGE_SEND)!!) {
                     event.reply("You cannot Send Message ;)").setEphemeral(true).queue()
+                    return
                 }
                 val nickname = event.getOption("nickname", OptionMapping::getAsString)
                 if (nickname.isNullOrBlank()) {
                     event.reply("닉네임을 입력해주세요").setEphemeral(true).queue()
                 }
-                // optionally check for member information
+
+                // get mention info
+//                val mention = event.getOption("nickname", OptionMapping::getAsMentionable)
+//                val mentionName = mention?.asMention?.replace("@", "")?.replace("!", "")
+
                 val str = """
                     부럽다
 
@@ -73,7 +93,13 @@ class DefaultListener : ListenerAdapter() {
 
                     내가 뭘 할 수 있는 게 없음 ㅜㅜㅜㅜ
 
-                    난 좆밥 새끼임 ㅠ
+                    `${event.user.name}`${
+                        KoreanUtil.getCompleteWord(
+                            event.user.name!!,
+                            "은",
+                            "는",
+                        )
+                    } 좆밥 새끼임 ㅠ
 
                     존나 화내거나 욕하는 거 말고 할 수 있는 게 없음 ㅠㅠ
                 """.trimIndent()

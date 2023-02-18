@@ -6,7 +6,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 class GuildMusicManager(
     manager: AudioPlayerManager,
 ) {
-    val audioPlayer: AudioPlayer
+    private val audioPlayer: AudioPlayer
     val scheduler: TrackScheduler
     private val sendHandler: AudioPlayerSendHandler
 

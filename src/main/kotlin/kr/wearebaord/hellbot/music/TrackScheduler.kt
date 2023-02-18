@@ -6,6 +6,7 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
+import org.slf4j.LoggerFactory
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -13,6 +14,8 @@ class TrackScheduler(
     private val player: AudioPlayer
 ) : AudioEventAdapter() {
     private val queue: BlockingQueue<AudioTrack> =  LinkedBlockingQueue()
+
+    private val log = LoggerFactory.getLogger(TrackScheduler::class.java)
 
     fun queue(track: AudioTrack) {
         // 한글로 주석 작성
@@ -28,8 +31,9 @@ class TrackScheduler(
     }
 
     override fun onTrackStart(player: AudioPlayer, track: AudioTrack) {
-        val channel = track.userData as TextChannel
-        channel.sendMessageFormat("Now playing: %s by %s", track.info.title, track.info.author).queue()
+        val userData = track.userData
+        log.info("userData: $userData")
+//        channel.sendMessageFormat("Now playing: %s by %s", track.info.title, track.info.author).queue()
     }
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
