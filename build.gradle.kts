@@ -28,8 +28,14 @@ dependencies {
     api("ch.qos.logback:logback-classic:1.2.8")
     api("com.squareup.okhttp3:okhttp:4.9.3")
 
+    // YOUTUBE MUSIC SUPPORT https://github.com/sedmelluq/lavaplayer
+
+    api("com.sedmelluq:lavaplayer:1.3.77")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     api(kotlin("stdlib-jdk8"))
+
+    // .env 사용을 위해
+    api("io.github.cdimascio:java-dotenv:5.2.2")
 
 //    testImplementation(kotlin("test"))
 }
@@ -41,7 +47,7 @@ tasks.withType<KotlinCompile> {
 // 실행 가능하게 하도록 설정
 tasks.jar {
     manifest {
-        attributes["Main-Class"] = "kr.wearebaord.hellbot.MainKt"
+        attributes["Main-Class"] = "kr.wearebaord.hellbot.HellBotKt"
     }
     from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
