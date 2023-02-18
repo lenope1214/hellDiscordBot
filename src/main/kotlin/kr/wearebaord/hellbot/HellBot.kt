@@ -1,12 +1,10 @@
 package kr.wearebaord.hellbot
 
+import io.github.jdiscordbots.command_framework.CommandFramework
 import kr.wearebaord.hellbot.configs.Config
-import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
@@ -22,12 +20,35 @@ fun makeMessage(event: SlashCommandInteractionEvent, message: String) {
 }
 
 fun main() {
+
+    /**
+     * command framework
+     * command annotation을 쓰기 위해 추가
+     */
+    val framework: CommandFramework =
+        CommandFramework() // Step 1
+            /* Step 2 */
+            .setMentionPrefix(true) // Allow mention prefix, Default: true
+            .setPrefix(Config.getEnvByKey("prefix")) // Default: !
+            .setOwners(
+                // Set owners ids for permissions system, Default: {}
+                "262951571053084673",
+                "796395869192454166",
+            )
+
+
     val jdaBuilder = JDABuilder.createDefault(Config.getEnvByKey("token"))
     configureMemoryUsage(jdaBuilder)
-        .setActivity(Activity.playing("열정을 다해 놀리기를\n${LocalDateTime.now().format(
-            // HH:mm
-            java.time.format.DateTimeFormatter.ofPattern("HH:mm")
-        )}부터"))
+        .setActivity(
+            Activity.playing(
+                "열정을 다해 놀리기를\n${
+                    LocalDateTime.now().format(
+                        // HH:mm
+                        java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+                    )
+                }부터"
+            )
+        )
         .enableIntents(
             GatewayIntent.MESSAGE_CONTENT,
             GatewayIntent.GUILD_PRESENCES,
@@ -39,7 +60,7 @@ fun main() {
         .enableCache(
             CacheFlag.VOICE_STATE, // voice state caching??
         )
-            // cache를 사용하지 않는다면, 이벤트를 받을 수 없다.
+        // cache를 사용하지 않는다면, 이벤트를 받을 수 없다.
         .disableCache(
 //            CacheFlag.ACTIVITY,
 //            CacheFlag.CLIENT_STATUS,
@@ -49,11 +70,21 @@ fun main() {
 
         )
         .addEventListeners(
-            DefaultListener(),
-            CommandListener(),
-            PlayListener(),
+            framework.build(),
+//            DefaultListener(),
+//            CommandListener(),
+//            PlayListener(),
         )
         .build()
+        .awaitReady()
+}
+
+JDAK.global(jda) {
+    //put your global commands here
+}
+
+JDAK.guilds(jda, guilds) {
+    //put your guild-only commands here
 }
 
 fun configureMemoryUsage(builder: JDABuilder): JDABuilder {

@@ -21,5 +21,20 @@ class GuildMusicManager(
         return this.sendHandler
     }
 
+    fun clearQueue() {
+        this.scheduler.queue.clear()
+    }
 
+    fun stopTrack(){
+        this.scheduler.player.stopTrack()
+    }
+
+    fun stopMusic(){
+        stopTrack()
+        clearQueue()
+    }
+
+    fun isPlaying(): Boolean{
+        return this.scheduler.player.playingTrack != null
+    }
 }

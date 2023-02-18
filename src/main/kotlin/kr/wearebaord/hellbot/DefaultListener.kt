@@ -1,12 +1,9 @@
 package kr.wearebaord.hellbot
 
-import kr.wearebaord.hellbot.configs.Config
 import kr.wearebaord.hellbot.utils.KoreanUtil
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.events.session.ReadyEvent
-import net.dv8tion.jda.api.events.session.ShutdownEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType

@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    api("net.dv8tion:JDA:5.0.0-beta.3")
+//    api("net.dv8tion:JDA:5.0.0-alpha.18")
 
     // JDA KTX https://github.com/MinnDevelopment/jda-ktx/tags 버전확인
     api("com.github.minndevelopment:jda-ktx:0.10.0-beta.1")
@@ -31,13 +31,18 @@ dependencies {
     // YOUTUBE MUSIC SUPPORT https://github.com/sedmelluq/lavaplayer
 
     api("com.sedmelluq:lavaplayer:1.3.77")
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
-    api(kotlin("stdlib-jdk8"))
+
 
     // .env 사용을 위해
     api("io.github.cdimascio:java-dotenv:5.2.2")
 
-//    testImplementation(kotlin("test"))
+    // jda command framework
+//    api("io.github.jdiscordbots:command-framework:1.1.1")
+    api("io.github.sonmoosans:jdak:1.2.0")
+
+    // kotlin
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+    api(kotlin("stdlib-jdk8"))
 }
 
 tasks.withType<KotlinCompile> {

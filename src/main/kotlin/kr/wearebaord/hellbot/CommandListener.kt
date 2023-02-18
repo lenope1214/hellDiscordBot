@@ -4,15 +4,14 @@ import kr.wearebaord.hellbot.utils.KoreanUtil
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.entities.MessageChannel
+import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import org.slf4j.LoggerFactory
 
-fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild){
+fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild) {
     val selfVoiceState = member!!.voiceState
     println("selfVoiceState = ${selfVoiceState}")
     if (selfVoiceState?.inAudioChannel() != true) {
@@ -20,12 +19,12 @@ fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild){
         return
     }
 
-    if(!member.hasPermission(Permission.VOICE_CONNECT)) {
+    if (!member.hasPermission(Permission.VOICE_CONNECT)) {
         channel.sendMessage("음성채널에 연결할 권한이 없습니다.").queue()
         return
     }
 
-    if(!member.hasPermission(Permission.VOICE_SPEAK)) {
+    if (!member.hasPermission(Permission.VOICE_SPEAK)) {
         channel.sendMessage("음성채널에서 말할 권한이 없습니다.").queue()
         return
     }
@@ -43,7 +42,7 @@ fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild){
     channel.sendMessageFormat("음성채널에 연결되었습니다. (%s)", voiceChannel!!.name).queue()
 }
 
-fun leaveBot(channel: MessageChannel, guild: Guild){
+fun leaveBot(channel: MessageChannel, guild: Guild) {
     // 봇이 음성채널에 있다면 나가게 한다
     val audioManager = guild.audioManager
     if (audioManager.isConnected) {
@@ -52,7 +51,7 @@ fun leaveBot(channel: MessageChannel, guild: Guild){
     }
 }
 
-fun isInvalidMessage(event: MessageReceivedEvent) : Boolean{
+fun isInvalidMessage(event: MessageReceivedEvent): Boolean {
     val raw: String = event.message.contentRaw
     val channel = event.channel
 
@@ -79,7 +78,7 @@ class CommandListener : ListenerAdapter() {
         val raw: String = event.message.contentRaw
         val channel = event.channel
 
-        if(isInvalidMessage(event)) return
+        if (isInvalidMessage(event)) return
 
         when (raw.lowercase()) {
             PREFIX + "help" -> {
