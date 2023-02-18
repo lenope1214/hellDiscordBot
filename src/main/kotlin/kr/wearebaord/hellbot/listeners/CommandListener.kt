@@ -1,6 +1,8 @@
-package kr.wearebaord.hellbot
+package kr.wearebaord.hellbot.listeners
 
-import kr.wearebaord.hellbot.utils.KoreanUtil
+import kr.wearebaord.hellbot.OWNER_ID
+import kr.wearebaord.hellbot.PREFIX
+import kr.wearebaord.hellbot.botTextChannel
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
@@ -8,7 +10,6 @@ import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
-import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import org.slf4j.LoggerFactory
 
 fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild) {
@@ -60,7 +61,7 @@ fun isInvalidMessage(event: MessageReceivedEvent): Boolean {
 
     // 대상이 봇이 아니고 채널이 Config.getEnvByKey("text_channel_name")과 다르다면 알림을 주고 종료
     if (!event.author.isBot && channel.name != botTextChannel) {
-        channel.sendMessage("채팅 채널 이름이 `${botTextChannel}`인 채널에서 요청해야합니다.").queue()
+        channel.sendMessage("채팅 채널 이름이 `$botTextChannel`인 채널에서 요청해야합니다.").queue()
         return true
     }
 

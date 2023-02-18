@@ -1,5 +1,6 @@
-package kr.wearebaord.hellbot
+package kr.wearebaord.hellbot.listeners
 
+import kr.wearebaord.hellbot.makeMessage
 import kr.wearebaord.hellbot.utils.KoreanUtil
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.ReadyEvent
@@ -17,6 +18,8 @@ class DefaultListener : ListenerAdapter() {
         log.info("Logged in as ${event.jda.selfUser.name}")
 
         // Sets the global command list to the provided commands (removing all others)
+        
+        // TODO addCommands는 일일 제한이 있어서 테스트 시에 조심해야 함
         event.jda.updateCommands().addCommands(
             Commands.slash("ping", "Calculate ping of the bot"),
             Commands.slash("놀리기", "대상을 놀립니다.")
@@ -32,6 +35,11 @@ class DefaultListener : ListenerAdapter() {
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
         // make sure we handle the right command
+        // 만약 개인채팅이면 "개인 채팅에서 사용은 불가능합니다." 메세지와 함께 종료
+        if (event.guild == null) {
+            event.reply("개인 채팅에서 사용은 불가능합니다.").setEphemeral(true).queue()
+            return
+        }
         when (event.name) {
             "ping" -> {
                 val time = System.currentTimeMillis()

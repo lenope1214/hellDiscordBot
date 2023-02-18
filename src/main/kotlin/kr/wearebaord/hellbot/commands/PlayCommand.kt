@@ -5,16 +5,17 @@ import io.github.jdiscordbots.command_framework.command.Command
 import io.github.jdiscordbots.command_framework.command.CommandEvent
 import io.github.jdiscordbots.command_framework.command.ICommand
 import io.github.jdiscordbots.command_framework.command.text.MessageArgument
-import kr.wearebaord.hellbot.joinVoiceChannelBot
+import kr.wearebaord.hellbot.listeners.joinVoiceChannelBot
 import kr.wearebaord.hellbot.music.PlayerManager
 import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.net.URISyntaxException
+import javax.swing.plaf.basic.BasicOptionPaneUI.ButtonActionListener
 
 
 @Command("play", "p", "ㅔ")
-@Command
 class PlayCommand : ICommand {
     private val log = LoggerFactory.getLogger(PlayCommand::class.java)
 
@@ -23,10 +24,6 @@ class PlayCommand : ICommand {
         // self member
         val self = event.guild!!.selfMember
         val selfVoiceState = self!!.voiceState
-
-        log.info("event.message.contentRaw : ${event.message.contentRaw}")
-        log.info("event.message.contentDisplay : ${event.message.contentDisplay}")
-        log.info("event.message.contentStripped : ${event.message.contentStripped}")
 
         if (event.args.isEmpty()) {
             log.info("play command args is empty")
@@ -51,7 +48,9 @@ class PlayCommand : ICommand {
 //        val url = event.args
         // loging args
         val args: List<MessageArgument> = event.args as List<MessageArgument>
-        var url = args.joinToString(" ")
+        val argsMap = args.map { it.asString }
+        // argsMap to joined String
+        var url = argsMap.joinToString(" ")
         log.info("url: $url")
         if (!isUrl(url)) {
             log.info("url is not url, ytsearch")

@@ -4,11 +4,8 @@ import io.github.jdiscordbots.command_framework.command.ArgumentTemplate
 import io.github.jdiscordbots.command_framework.command.Command
 import io.github.jdiscordbots.command_framework.command.CommandEvent
 import io.github.jdiscordbots.command_framework.command.ICommand
-import io.github.jdiscordbots.command_framework.command.text.MessageArgument
-import kr.wearebaord.hellbot.joinVoiceChannelBot
 import kr.wearebaord.hellbot.music.GuildMusicManager
 import kr.wearebaord.hellbot.music.PlayerManager
-import net.dv8tion.jda.api.entities.TextChannel
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.net.URISyntaxException

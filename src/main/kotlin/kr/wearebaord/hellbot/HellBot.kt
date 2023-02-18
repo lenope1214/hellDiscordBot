@@ -2,6 +2,8 @@ package kr.wearebaord.hellbot
 
 import io.github.jdiscordbots.command_framework.CommandFramework
 import kr.wearebaord.hellbot.configs.Config
+import kr.wearebaord.hellbot.listeners.CommandListener
+import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -11,6 +13,7 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import java.time.LocalDateTime
 
+val TOKEN = Config.getEnvByKey("token")
 val botTextChannel = Config.getEnvByKey("text_channel_name")
 val PREFIX: String = Config.getEnvByKey("prefix")!!
 val OWNER_ID = Config.getEnvByKey("owner_id") ?: "0"
@@ -29,7 +32,7 @@ fun main() {
         CommandFramework() // Step 1
             /* Step 2 */
             .setMentionPrefix(true) // Allow mention prefix, Default: true
-            .setPrefix(Config.getEnvByKey("prefix")) // Default: !
+            .setPrefix(PREFIX) // Default: !
             .setOwners(
                 // Set owners ids for permissions system, Default: {}
                 "262951571053084673",
@@ -37,8 +40,8 @@ fun main() {
             )
 
 
-    val jdaBuilder = JDABuilder.createDefault(Config.getEnvByKey("token"))
-    configureMemoryUsage(jdaBuilder)
+    val jdaBuilder = JDABuilder.createDefault(TOKEN)
+    val jda = configureMemoryUsage(jdaBuilder)
         .setActivity(
             Activity.playing(
                 "열정을 다해 놀리기를\n${
@@ -67,7 +70,6 @@ fun main() {
             CacheFlag.EMOJI,
 //            CacheFlag.MEMBER_OVERRIDES,
 //            CacheFlag.VOICE_STATE,
-
         )
         .addEventListeners(
             framework.build(),
@@ -76,15 +78,10 @@ fun main() {
 //            PlayListener(),
         )
         .build()
-        .awaitReady()
-}
+            .awaitReady()
 
-JDAK.global(jda) {
-    //put your global commands here
-}
-
-JDAK.guilds(jda, guilds) {
-    //put your guild-only commands here
+    // logging application id
+    println("Application ID: ${jda.selfUser.id}")
 }
 
 fun configureMemoryUsage(builder: JDABuilder): JDABuilder {

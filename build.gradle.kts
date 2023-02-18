@@ -37,8 +37,8 @@ dependencies {
     api("io.github.cdimascio:java-dotenv:5.2.2")
 
     // jda command framework
-//    api("io.github.jdiscordbots:command-framework:1.1.1")
-    api("io.github.sonmoosans:jdak:1.2.0")
+    api("io.github.jdiscordbots:command-framework:1.1.1")
+//    api("io.github.sonmoosans:jdak:1.2.0")
 
     // kotlin
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
