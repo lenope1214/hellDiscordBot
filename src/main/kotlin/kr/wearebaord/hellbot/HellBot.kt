@@ -65,11 +65,7 @@ fun main() {
         )
         // cache를 사용하지 않는다면, 이벤트를 받을 수 없다.
         .disableCache(
-//            CacheFlag.ACTIVITY,
-//            CacheFlag.CLIENT_STATUS,
             CacheFlag.EMOJI,
-//            CacheFlag.MEMBER_OVERRIDES,
-//            CacheFlag.VOICE_STATE,
         )
         .addEventListeners(
             framework.build(),
@@ -81,6 +77,9 @@ fun main() {
             .awaitReady()
 
     // logging application id
+    println("TOKEN = ${TOKEN}")
+    println("PREFIX = ${PREFIX}")
+    println("OWNER_ID = ${OWNER_ID}")
     println("Application ID: ${jda.selfUser.id}")
 }
 
