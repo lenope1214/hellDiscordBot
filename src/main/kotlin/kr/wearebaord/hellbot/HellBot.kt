@@ -2,8 +2,8 @@ package kr.wearebaord.hellbot
 
 import io.github.jdiscordbots.command_framework.CommandFramework
 import kr.wearebaord.hellbot.configs.Config
-import kr.wearebaord.hellbot.listeners.CommandListener
-import net.dv8tion.jda.api.EmbedBuilder
+import kr.wearebaord.hellbot.listeners.DefaultListener
+import kr.wearebaord.hellbot.listeners.HelloBot
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import java.time.LocalDateTime
 
+var JDA: net.dv8tion.jda.api.JDA? = null
 val TOKEN = Config.getEnvByKey("token")
 val botTextChannel = Config.getEnvByKey("text_channel_name")
 val PREFIX: String = Config.getEnvByKey("prefix")!!
@@ -41,7 +42,7 @@ fun main() {
 
 
     val jdaBuilder = JDABuilder.createDefault(TOKEN)
-    val jda = configureMemoryUsage(jdaBuilder)
+    JDA = configureMemoryUsage(jdaBuilder)
         .setActivity(
             Activity.playing(
                 "열정을 다해 놀리기를\n${
@@ -61,26 +62,32 @@ fun main() {
             GatewayIntent.GUILD_VOICE_STATES,
         )
         .enableCache(
+            CacheFlag.ACTIVITY,
             CacheFlag.VOICE_STATE, // voice state caching??
+            CacheFlag.EMOJI,
+            CacheFlag.CLIENT_STATUS,
+            CacheFlag.MEMBER_OVERRIDES,
+            CacheFlag.ROLE_TAGS,
         )
         // cache를 사용하지 않는다면, 이벤트를 받을 수 없다.
         .disableCache(
-            CacheFlag.EMOJI,
+            CacheFlag.STICKER
         )
         .addEventListeners(
-            framework.build(),
-//            DefaultListener(),
+            HelloBot,
+//            framework.build(),
+            DefaultListener,
 //            CommandListener(),
 //            PlayListener(),
         )
         .build()
-            .awaitReady()
+//        .awaitReady() // awaitReady()를 사용하면, 이벤트를 받을 수 없다.
 
     // logging application id
     println("TOKEN = ${TOKEN}")
     println("PREFIX = ${PREFIX}")
     println("OWNER_ID = ${OWNER_ID}")
-    println("Application ID: ${jda.selfUser.id}")
+    println("Application ID: ${JDA!!.selfUser.id}")
 }
 
 fun configureMemoryUsage(builder: JDABuilder): JDABuilder {

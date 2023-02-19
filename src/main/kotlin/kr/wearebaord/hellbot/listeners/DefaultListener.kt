@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import org.slf4j.LoggerFactory
 
-class DefaultListener : ListenerAdapter() {
+object DefaultListener : ListenerAdapter() {
     val log = LoggerFactory.getLogger(DefaultListener::class.java)
 
     override fun onReady(event: ReadyEvent) {
