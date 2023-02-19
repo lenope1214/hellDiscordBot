@@ -12,7 +12,7 @@ WORKDIR /home/hellbot
 
 # Copy the Java application into the container
 ARG JAR_FILE=build/libs/hellbot.jar
-ARG ENV_FILE=.env-prod
+ARG ENV_FILE=.env
 
 # Add the application's jar to the container
 ADD ${JAR_FILE} hellbot.jar
