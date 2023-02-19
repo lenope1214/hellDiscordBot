@@ -9,6 +9,10 @@
 #java -jar cms_prod_server.jar --spring.profiles.active=prod --server.port=8989
 
 # 도커라이징 빌드
+
+#  기존 hellbot image 삭제
+docker rmi lenope1214/hellbot
+
 docker build -t lenope1214/hellbot .
 
 ## 기존에 돌아가던 컨테이너 삭제
