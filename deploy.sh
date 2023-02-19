@@ -16,4 +16,5 @@ docker build -t lenope1214/hellbot .
 docker ps -q --filter "name=hellbot" && docker stop hellbot | true && docker rm hellbot | true
 
 ## 빌드한 이미지 실행
-docker run -p 10100:10100 -p 10101:10101 -d --name=hellbot --link mariadb lenope1214/hellbot -v logs:/logs
+#docker run -p 10100:10100 -p 10101:10101 -d --name=hellbot lenope1214/hellbot -v logs:/logs
+docker-compose up -d
