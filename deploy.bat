@@ -1,12 +1,13 @@
 # 도커라이징 전
 
-#kill $(jps -lv | awk '/hellbot.jar/ {print $1}') || true
-
-#java -version
 #rm hellbot.jar || true
-#cp build/libs/*.jar hellbot.jar
+#./gradlew clean build --stacktrace
+#
+##fuser -k $(jps -lv | awk '/hellbot.jar/ {print $1}')/tcp
+#kill $(jps -lv | awk '/hellbot.jar/ {print $1}')
+#
+#cp build/libs/*.jar .
 #nohup java -jar hellbot.jar > /dev/null 2>&1 &
-#java -jar cms_prod_server.jar --spring.profiles.active=prod --server.port=8989
 
 # 도커라이징 빌드
 docker build -t lenope1214/hellbot .

@@ -1,0 +1,36 @@
+version: '3'
+services:
+  hellbot:
+    build: .
+    image: hellbot
+    ports:
+      - "10100:10100"
+    networks:
+      - hellbot_network
+#      - host
+    volumes:
+      - ./logs:/logs
+    depends_on:
+      - hellbot_mariadb
+
+  hellbot_mariadb:
+    container_name: hellbot_mariadb
+    image: mariadb
+    restart: always
+    environment:
+      TZ: Asia/Seoul
+      MYSQL_ROOT_PASSWORD: mylenope12!$mylenope12!$mylenope12!$
+      MYSQL_USER: hellbot
+      MYSQL_PASSWORD: mylenope12!$
+    ports:
+      - '10101:3306'
+    volumes:
+      - hellbot_db_mariadb:/var/lib/mysql
+
+volumes:
+  hellbot_db_mariadb:
+
+
+networks:
+  hellbot_network:
+        driver: bridge
