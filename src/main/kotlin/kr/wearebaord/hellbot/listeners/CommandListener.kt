@@ -2,7 +2,7 @@ package kr.wearebaord.hellbot.listeners
 
 import kr.wearebaord.hellbot.OWNER_ID
 import kr.wearebaord.hellbot.PREFIX
-import kr.wearebaord.hellbot.botTextChannel
+import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
@@ -60,8 +60,8 @@ fun isInvalidMessage(event: MessageReceivedEvent): Boolean {
     if (!raw.startsWith(PREFIX, ignoreCase = true)) return true
 
     // 대상이 봇이 아니고 채널이 Config.getEnvByKey("text_channel_name")과 다르다면 알림을 주고 종료
-    if (!event.author.isBot && channel.name != botTextChannel) {
-        channel.sendMessage("채팅 채널 이름이 `$botTextChannel`인 채널에서 요청해야합니다.").queue()
+    if (!event.author.isBot && channel.name != TEXT_CHANNEL_NAME) {
+        channel.sendMessage("채팅 채널 이름이 `$TEXT_CHANNEL_NAME`인 채널에서 요청해야합니다.").queue()
         return true
     }
 
