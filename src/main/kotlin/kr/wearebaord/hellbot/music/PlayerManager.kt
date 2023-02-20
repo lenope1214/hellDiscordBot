@@ -49,15 +49,7 @@ class PlayerManager {
 
             override fun playlistLoaded(playlist: AudioPlaylist) {
                 val tracks = playlist.tracks
-//                channel.sendMessage("Adding playlist to queue: `")
-//                    .addContent(tracks.size.toString())
-//                    .addContent("` tracks from playlist `")
-//                    .addContent(playlist.tracks[0].info.title)
-//                    .queue()
                 trackLoaded(tracks[0])
-                //                for (track in tracks) {
-                //                    musicManager.queue(track)
-                //                }
             }
 
             override fun noMatches() {

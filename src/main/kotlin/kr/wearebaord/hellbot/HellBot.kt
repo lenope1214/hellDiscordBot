@@ -2,6 +2,8 @@ package kr.wearebaord.hellbot
 
 import kr.wearebaord.hellbot.configs.Config
 import kr.wearebaord.hellbot.listeners.DefaultListener
+import kr.wearebaord.hellbot.listeners.MessageListener
+import kr.wearebaord.hellbot.listeners.music.PlayListener
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -56,11 +58,9 @@ suspend fun main() {
             CacheFlag.STICKER
         )
         .addEventListeners(
-//            HelloBot,
-//            framework.build(),
             DefaultListener,
-//            CommandListener(),
-//            PlayListener(),
+            MessageListener,
+            PlayListener,
         )
         .build()
         .awaitReady()
