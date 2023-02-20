@@ -3,8 +3,8 @@ package kr.wearebaord.hellbot.listeners
 import kr.wearebaord.hellbot.makeMessage
 import kr.wearebaord.hellbot.utils.KoreanUtil
 import net.dv8tion.jda.api.Permission
-import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType

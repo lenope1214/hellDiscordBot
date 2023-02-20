@@ -8,7 +8,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import net.dv8tion.jda.api.entities.Guild
-import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import org.slf4j.LoggerFactory
 
 class PlayerManager {
@@ -55,9 +55,9 @@ class PlayerManager {
 //                    .addContent(playlist.tracks[0].info.title)
 //                    .queue()
                 trackLoaded(tracks[0])
-    //                for (track in tracks) {
-    //                    musicManager.queue(track)
-    //                }
+                //                for (track in tracks) {
+                //                    musicManager.queue(track)
+                //                }
             }
 
             override fun noMatches() {

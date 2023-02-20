@@ -6,9 +6,9 @@ import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.entities.MessageChannel
-import net.dv8tion.jda.api.events.ReadyEvent
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 
@@ -85,6 +85,7 @@ class CommandListener : ListenerAdapter() {
             PREFIX + "help" -> {
                 event.channel.sendMessage("도움말").queue()
             }
+
             PREFIX + "shutdown" -> {
                 if (!(event.author.id == OWNER_ID || event.member?.hasPermission(Permission.ADMINISTRATOR) == true)) {
                     event.message.delete().queue()
@@ -94,10 +95,12 @@ class CommandListener : ListenerAdapter() {
                 log.info("Shutdown command received from ${event.author.name}")
                 event.jda.shutdown()
             }
+
             PREFIX + "join" -> {
                 log.info("join bot by username : ${event.author.name}")
                 joinVoiceChannelBot(event.channel, event.member!!, event.guild)
             }
+
             PREFIX + "leave" -> {
                 log.info("leave bot by username : ${event.author.name}")
                 leaveBot(event.channel, event.guild)

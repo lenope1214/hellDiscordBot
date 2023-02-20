@@ -1,6 +1,5 @@
 package kr.wearebaord.hellbot
 
-import io.github.jdiscordbots.command_framework.CommandFramework
 import kr.wearebaord.hellbot.configs.Config
 import kr.wearebaord.hellbot.listeners.DefaultListener
 import net.dv8tion.jda.api.JDABuilder
@@ -24,23 +23,6 @@ fun makeMessage(event: SlashCommandInteractionEvent, message: String) {
 }
 
 suspend fun main() {
-
-    /**
-     * command framework
-     * command annotation을 쓰기 위해 추가
-     */
-    val framework: CommandFramework =
-        CommandFramework() // Step 1
-            /* Step 2 */
-            .setMentionPrefix(true) // Allow mention prefix, Default: true
-            .setPrefix(PREFIX) // Default: !
-            .setOwners(
-                // Set owners ids for permissions system, Default: {}
-                "262951571053084673",
-                "796395869192454166",
-            )
-
-
     val jdaBuilder = JDABuilder.createDefault(TOKEN)
     JDA = configureMemoryUsage(jdaBuilder)
         .setActivity(

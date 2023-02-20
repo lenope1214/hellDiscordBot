@@ -7,12 +7,12 @@ import kotlin.system.exitProcess
 
 class Config {
 
-    companion object{
+    companion object {
         private val requiredEnvironments: List<String> = listOf(
             "TOKEN",
             "PREFIX",
         )
-        private val log: Logger= LoggerFactory.getLogger(Config::class.java)
+        private val log: Logger = LoggerFactory.getLogger(Config::class.java)
         private val dotenv: Dotenv = Dotenv.load();
         fun getEnvByKey(key: String) = dotenv[key.uppercase()]
 
