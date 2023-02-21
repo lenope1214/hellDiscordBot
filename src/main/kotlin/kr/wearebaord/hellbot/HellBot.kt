@@ -1,9 +1,11 @@
 package kr.wearebaord.hellbot
 
-import io.github.jdiscordbots.command_framework.CommandFramework
 import kr.wearebaord.hellbot.configs.Config
-import kr.wearebaord.hellbot.listeners.CommandListener
-import net.dv8tion.jda.api.EmbedBuilder
+import kr.wearebaord.hellbot.listeners.DefaultListener
+import kr.wearebaord.hellbot.listeners.MessageListener
+import kr.wearebaord.hellbot.listeners.music.PlayListener
+import kr.wearebaord.hellbot.listeners.music.SkipListener
+import kr.wearebaord.hellbot.listeners.music.StopListener
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -12,36 +14,21 @@ import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import java.time.LocalDateTime
+import kotlin.system.exitProcess
 
-val TOKEN = Config.getEnvByKey("token")
-val botTextChannel = Config.getEnvByKey("text_channel_name")
+var JDA: net.dv8tion.jda.api.JDA? = null
+val TOKEN: String = Config.getEnvByKey("token")!!
+val TEXT_CHANNEL_NAME: String = Config.getEnvByKey("text_channel_name")?.let { it } ?: "헬파티봇"
 val PREFIX: String = Config.getEnvByKey("prefix")!!
-val OWNER_ID = Config.getEnvByKey("owner_id") ?: "0"
+val OWNER_ID: String = Config.getEnvByKey("owner_id") ?: "0"
 
 fun makeMessage(event: SlashCommandInteractionEvent, message: String) {
     event.reply(message).setEphemeral(false).queue()
 }
 
-fun main() {
-
-    /**
-     * command framework
-     * command annotation을 쓰기 위해 추가
-     */
-    val framework: CommandFramework =
-        CommandFramework() // Step 1
-            /* Step 2 */
-            .setMentionPrefix(true) // Allow mention prefix, Default: true
-            .setPrefix(PREFIX) // Default: !
-            .setOwners(
-                // Set owners ids for permissions system, Default: {}
-                "262951571053084673",
-                "796395869192454166",
-            )
-
-
+suspend fun main() {
     val jdaBuilder = JDABuilder.createDefault(TOKEN)
-    val jda = configureMemoryUsage(jdaBuilder)
+    JDA = configureMemoryUsage(jdaBuilder)
         .setActivity(
             Activity.playing(
                 "열정을 다해 놀리기를\n${
@@ -61,26 +48,42 @@ fun main() {
             GatewayIntent.GUILD_VOICE_STATES,
         )
         .enableCache(
+            CacheFlag.ACTIVITY,
             CacheFlag.VOICE_STATE, // voice state caching??
+            CacheFlag.EMOJI,
+            CacheFlag.CLIENT_STATUS,
+            CacheFlag.MEMBER_OVERRIDES,
+            CacheFlag.ROLE_TAGS,
         )
         // cache를 사용하지 않는다면, 이벤트를 받을 수 없다.
         .disableCache(
-            CacheFlag.EMOJI,
+            CacheFlag.STICKER
         )
         .addEventListeners(
-            framework.build(),
-//            DefaultListener(),
-//            CommandListener(),
-//            PlayListener(),
+            DefaultListener,
+            MessageListener,
+            PlayListener,
+            StopListener,
+            SkipListener,
         )
         .build()
-            .awaitReady()
+        .awaitReady()
+
+    if (JDA == null) {
+        println("JDA is null. Exiting...")
+        exitProcess(1)
+    }
+
+    // 채팅 채널 이름이 "헬파티봇" 인 채널은 5초마다 메세지를 전부 삭제한다.
+    // 5초마다 메세지를 삭제하는 이유는, 채팅이 쌓이는 것을 방지하기 위함이다.
+
 
     // logging application id
     println("TOKEN = ${TOKEN}")
     println("PREFIX = ${PREFIX}")
     println("OWNER_ID = ${OWNER_ID}")
-    println("Application ID: ${jda.selfUser.id}")
+    println("TEXT_CHANNEL_NAME = ${TEXT_CHANNEL_NAME}")
+    println("Application ID: ${JDA!!.selfUser.id}")
 }
 
 fun configureMemoryUsage(builder: JDABuilder): JDABuilder {

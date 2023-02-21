@@ -6,9 +6,9 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 class GuildMusicManager(
     manager: AudioPlayerManager,
 ) {
-    private val audioPlayer: AudioPlayer
+    val audioPlayer: AudioPlayer
     val scheduler: TrackScheduler
-    private val sendHandler: AudioPlayerSendHandler
+    val sendHandler: AudioPlayerSendHandler
 
     init {
         this.audioPlayer = manager.createPlayer()
@@ -17,24 +17,20 @@ class GuildMusicManager(
         this.sendHandler = AudioPlayerSendHandler(this.audioPlayer)
     }
 
-    fun getSendHandler(): AudioPlayerSendHandler {
-        return this.sendHandler
-    }
-
     fun clearQueue() {
         this.scheduler.queue.clear()
     }
 
-    fun stopTrack(){
+    fun stopTrack() {
         this.scheduler.player.stopTrack()
     }
 
-    fun stopMusic(){
+    fun stopMusic() {
         stopTrack()
         clearQueue()
     }
 
-    fun isPlaying(): Boolean{
+    fun isPlaying(): Boolean {
         return this.scheduler.player.playingTrack != null
     }
 }
