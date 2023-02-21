@@ -22,17 +22,17 @@ import java.net.URI
 import java.net.URISyntaxException
 import java.util.concurrent.TimeUnit
 
-object StopListener : ListenerAdapter() {
-    val log = LoggerFactory.getLogger(StopListener::class.java)
+object SkipListener : ListenerAdapter() {
+    val log = LoggerFactory.getLogger(SkipListener::class.java)
 
-    private val commands: List<String> = listOf("s", "stop", "ㄴ", "ㄴ새ㅔ", "중지",)
+    private val commands: List<String> = listOf("sk", "skip", "나", "나ㅑㅔ", "넘기기", "다음", "next", "nt", "nxt")
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
         val command = parseCommand(raw)
         if(isInvalidMessage(event)) return
         if (!commands.contains(command)) return
-        println("stop command")
+        println("skip command")
 
         val channel = event.channel
         val self = event.guild.selfMember
@@ -57,13 +57,15 @@ object StopListener : ListenerAdapter() {
 
         val guild = event.guild
         val musicManager = PlayerManager.INSTANCE.getMusicManager(guild)
+        val audioPlayer = musicManager.audioPlayer
+    
+        if(audioPlayer.playingTrack == null) { // 없을 시 null임
+            channel.sendMessage("재생중인 노래가 없어요.").queue()
+            return
+        }
 
-        // stop
-        musicManager.scheduler.player.stopTrack()
-        musicManager.scheduler.queue.clear()
-
-        // 재생 종료를 알리고 채널에서 나감, 그리고 5초 뒤에 메세지 삭제
-        channel.sendMessage("재생을 종료했어").queue { it.delete().queueAfter(5, TimeUnit.SECONDS) } // 재생종료를 알리고 5초 뒤에 메세지 삭제
-        guild.audioManager.closeAudioConnection() // 오디오 채널에서 나감
+        // 다음 노래 재생
+        musicManager.scheduler.nextTrack()
+        channel.sendMessage("다음 노래를 재생합니다.").queue()
     }
 }

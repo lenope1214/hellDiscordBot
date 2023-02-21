@@ -25,20 +25,17 @@ class TrackScheduler(
         if (!player.startTrack(track, true)) {
             queue.offer(track)
         }
-        // 만약 재생 중이라면 큐에 추가
-        else{
-            queue.add(track)
-        }
 
 
     }
 
-    private fun nextTrack() {
+    fun nextTrack() {
         // noInterrupt() is a method on AudioPlayer which is used to make sure the current track finishes playing
-
-        // 한글로 주석 작성
-        // 현재 재생중인 트랙이 끝날 때까지 대기
-        player.startTrack(queue.poll(), false)
+        // 만약 다음 노래가 없다면 종료
+        if(queue.isEmpty()) {
+            return
+        }
+        player.startTrack(queue.poll()?.makeClone(), false)
     }
 
     override fun onPlayerPause(player: AudioPlayer?) {
@@ -64,11 +61,14 @@ class TrackScheduler(
 //        log.info("onTrackStart: $track")
     }
 
-    override fun onTrackEnd(player: AudioPlayer?, track: AudioTrack?, endReason: AudioTrackEndReason) {
-        if (endReason.mayStartNext) {
-            // Start next track
+    override fun onTrackEnd(player: AudioPlayer, track: AudioTrack?, endReason: AudioTrackEndReason) {
+        if(!endReason.mayStartNext){
             nextTrack()
+        }else{
+            // stoptrack
+            player.stopTrack()
         }
+
 
         // endReason == FINISHED: A track finished or died by an exception (mayStartNext = true).
         // endReason == LOAD_FAILED: Loading of a track failed (mayStartNext = true).

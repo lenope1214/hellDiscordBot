@@ -64,3 +64,16 @@ fun isInvalidMessage(event: MessageReceivedEvent): Boolean {
 
     return false
 }
+
+fun parseCommand(raw: String): String {
+    val substring = raw.substring(PREFIX.length)
+    val split = substring.split(" ")
+    return split[0]
+}
+fun parseContent(raw: String): String {
+    // split 후 1번 인덱스부터 끝까지
+    val substring = raw.substring(PREFIX.length)
+    val split = substring.split(" ")
+    val subList = split.subList(1, split.size)
+    return subList.joinToString(" ")
+}

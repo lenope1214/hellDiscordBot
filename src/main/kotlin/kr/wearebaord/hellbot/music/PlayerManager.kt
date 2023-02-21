@@ -10,6 +10,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
 
 class PlayerManager {
     private val log = LoggerFactory.getLogger(PlayerManager::class.java)
@@ -24,7 +25,7 @@ class PlayerManager {
     fun getMusicManager(guild: Guild): GuildMusicManager {
         return this.musicManagers.computeIfAbsent(guild.idLong) {
             val guildMusicManagers = GuildMusicManager(this.audioPlayerManager)
-            guild.audioManager.sendingHandler = guildMusicManagers.getSendHandler()
+            guild.audioManager.sendingHandler = guildMusicManagers.sendHandler
             guildMusicManagers
         }
     }
@@ -35,6 +36,7 @@ class PlayerManager {
         this.audioPlayerManager.loadItemOrdered(musicManager, trackUrl, object : AudioLoadResultHandler {
             override fun trackLoaded(track: AudioTrack) {
                 try {
+                    track.userData = LocalDateTime.now()
                     musicManager.queue(track)
                     channel.sendMessage("Adding to queue: `")
                         .addContent(track.info.title)

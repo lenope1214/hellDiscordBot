@@ -4,6 +4,8 @@ import kr.wearebaord.hellbot.configs.Config
 import kr.wearebaord.hellbot.listeners.DefaultListener
 import kr.wearebaord.hellbot.listeners.MessageListener
 import kr.wearebaord.hellbot.listeners.music.PlayListener
+import kr.wearebaord.hellbot.listeners.music.SkipListener
+import kr.wearebaord.hellbot.listeners.music.StopListener
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -61,6 +63,8 @@ suspend fun main() {
             DefaultListener,
             MessageListener,
             PlayListener,
+            StopListener,
+            SkipListener,
         )
         .build()
         .awaitReady()
