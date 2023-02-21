@@ -29,7 +29,7 @@ fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild) {
 
     // 이미 들어와 있으면 알림 후 종료
     if (guild.selfMember.voiceState!!.inAudioChannel()) {
-        channel.sendMessage("이미 음성채널에 연결되어 있습니다.").queue()
+//        channel.sendMessage("이미 음성채널에 연결되어 있습니다.").queue()
         return
     }
 
@@ -37,7 +37,7 @@ fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild) {
     val voiceChannel = selfVoiceState.channel
 
     audioManager.openAudioConnection(voiceChannel)
-    channel.sendMessageFormat("음성채널에 연결되었습니다. (%s)", voiceChannel!!.name).queue()
+//    channel.sendMessageFormat("음성채널에 연결되었습니다. (%s)", voiceChannel!!.name).queue()
 }
 
 fun leaveBot(channel: MessageChannel, guild: Guild) {

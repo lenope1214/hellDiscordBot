@@ -61,7 +61,7 @@ class PlayerManager {
              * @param exception The exception that was thrown
              */
             override fun loadFailed(exception: FriendlyException?) {
-                TODO("Not yet implemented")
+                channel.sendMessage("Could not play: $exception").queue()
             }
         })
     }

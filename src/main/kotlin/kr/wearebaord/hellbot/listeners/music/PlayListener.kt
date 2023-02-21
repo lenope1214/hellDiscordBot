@@ -1,23 +1,14 @@
 package kr.wearebaord.hellbot.listeners.music
 
 import kr.wearebaord.hellbot.PREFIX
-import kr.wearebaord.hellbot.makeMessage
-import kr.wearebaord.hellbot.utils.KoreanUtil
-import net.dv8tion.jda.api.Permission
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
-import net.dv8tion.jda.api.interactions.commands.OptionMapping
-import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.commands.build.Commands
 import org.slf4j.LoggerFactory
 import kr.wearebaord.hellbot.common.isInvalidMessage
+import kr.wearebaord.hellbot.common.isYoutubeUrl
 import kr.wearebaord.hellbot.common.joinVoiceChannelBot
 import kr.wearebaord.hellbot.music.PlayerManager
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
-import java.net.URI
-import java.net.URISyntaxException
 
 object PlayListener : ListenerAdapter() {
     val log = LoggerFactory.getLogger(PlayListener::class.java)
@@ -34,34 +25,32 @@ object PlayListener : ListenerAdapter() {
         }
 
         val command: String = args[0]
-        val content: String = args[1]
-
 
         when (command) {
-            PREFIX + "play" -> {
-                event.channel.sendMessage("play").queue()
+            "${PREFIX}p" -> {
+                val content: String = args[1]
+
+                val channel = event.channel
+
+                if (args.isEmpty()) {
+                    log.info("play command args is empty")
+                    channel.sendMessage("사용법: !!p title or link").queue()
+                    return
+                }
+
+                val member = event.member
+                val memberVoiceState = member!!.voiceState
+                log.info("member : $member")
+                log.info("memberVoiceState: $memberVoiceState")
+
+                if (!memberVoiceState!!.inAudioChannel()) {
+                    channel.sendMessage("음성채널에 들어가주세요.").queue()
+                    return
+                }
+
+                play(event, content)
             }
         }
-        val channel = event.channel
-
-        if (args.isEmpty()) {
-            log.info("play command args is empty")
-            channel.sendMessage("사용법: !!p title or link").queue()
-            return
-        }
-
-        val member = event.member
-        val memberVoiceState = member!!.voiceState
-        log.info("member : $member")
-        log.info("memberVoiceState: $memberVoiceState")
-
-        if (!memberVoiceState!!.inAudioChannel()) {
-            channel.sendMessage("음성채널에 들어가주세요.").queue()
-            return
-        }
-
-        play(event, content)
-
     }
 
     private fun play(event: MessageReceivedEvent, url: String) {
@@ -72,7 +61,7 @@ object PlayListener : ListenerAdapter() {
         var url = url
 
         log.info("url: $url")
-        if (!isUrl(url)) {
+        if (!url.isYoutubeUrl()) {
             log.info("url is not url, ytsearch")
             url = "ytsearch:$url"
         }
@@ -89,25 +78,6 @@ object PlayListener : ListenerAdapter() {
         } finally {
             // delete command message
             event.message.delete().queue()
-        }
-    }
-
-
-    private fun isUrl(url: String): Boolean {
-        // check if url is valid
-        try {
-            // is url
-            URI(url)
-            // check start with https://www.youtube.com/watch?v=
-            log.info("url.startsWith(\"https://www.youtube.com/watch?v=\") : ${url.startsWith("https://www.youtube.com/watch?v=")}")
-            if (!url.startsWith("https://www.youtube.com/watch?v=")) {
-                throw URISyntaxException(url, "url is not youtube url")
-            }
-
-            return true
-        } catch (e: URISyntaxException) {
-            log.error("Uri is not valid! ${e.message}")
-            return false
         }
     }
 }
