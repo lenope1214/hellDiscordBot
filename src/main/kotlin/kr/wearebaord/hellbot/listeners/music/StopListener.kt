@@ -16,8 +16,11 @@ object StopListener : ListenerAdapter() {
     override fun onMessageReceived(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
         val command = parseCommand(raw)
-        if(isInvalidMessage(event)) return
         if (!commands.contains(command)) return
+        if(isInvalidMessage(event)) {
+            event.message.delete().queue()
+            return
+        }
         println("stop command")
 
         val channel = event.channel
@@ -41,16 +44,7 @@ object StopListener : ListenerAdapter() {
             return
         }
 
-        val guild = event.guild
-        val musicManager = PlayerManager.INSTANCE.getMusicManager(guild)
-
-        // stop
-
-
-        // 재생 종료를 알리고 채널에서 나감, 그리고 5초 뒤에 메세지 삭제
-//        channel.sendMessage("재생을 종료했어").queue { it.delete().queueAfter(5, TimeUnit.SECONDS) } // 재생종료를 알리고 5초 뒤에 메세지 삭제
         PlayerManager.INSTANCE.reset(channel as TextChannel)
         self.guild.audioManager.closeAudioConnection()
-//        guild.audioManager.closeAudioConnection() // 오디오 채널에서 나감
     }
 }

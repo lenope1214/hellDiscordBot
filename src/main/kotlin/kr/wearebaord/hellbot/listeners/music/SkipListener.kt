@@ -16,8 +16,11 @@ object SkipListener : ListenerAdapter() {
     override fun onMessageReceived(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
         val command = parseCommand(raw)
-        if (isInvalidMessage(event)) return
         if (!commands.contains(command)) return
+        if(isInvalidMessage(event)) {
+            event.message.delete().queue()
+            return
+        }
         println("skip command")
 
         val channel = event.channel

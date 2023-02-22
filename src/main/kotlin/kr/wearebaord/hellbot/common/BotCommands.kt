@@ -3,8 +3,10 @@ package kr.wearebaord.hellbot.common
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import dev.minn.jda.ktx.interactions.components.SelectOption
 import dev.minn.jda.ktx.interactions.components.StringSelectMenu
+import dev.minn.jda.ktx.interactions.components.button
 import kr.wearebaord.hellbot.PREFIX
 import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
+import kr.wearebaord.hellbot.music.enums.ComponentTypes
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
@@ -13,9 +15,12 @@ import net.dv8tion.jda.api.entities.MessageEmbed.Field
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.ItemComponent
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.slf4j.LoggerFactory
 import java.awt.Color
+import java.util.concurrent.TimeUnit
 
 
 class BotCommands
@@ -72,7 +77,10 @@ fun isInvalidMessage(event: MessageReceivedEvent): Boolean {
 
     // 대상이 봇이 아니고 채널이 Config.getEnvByKey("text_channel_name")과 다르다면 알림을 주고 종료
     if (!event.author.isBot && channel.name != TEXT_CHANNEL_NAME) {
-        channel.sendMessage("채팅 채널 이름이 `$TEXT_CHANNEL_NAME`인 채널에서 요청해야합니다.").queue()
+        channel.sendMessage("채팅 채널 이름이 `$TEXT_CHANNEL_NAME`인 채널에서 요청해야합니다.")
+            .queue{
+                it.delete().queueAfter(5, TimeUnit.SECONDS)
+            }
         return true
     }
 
@@ -108,11 +116,13 @@ private fun TextChannel.deleteAllMessages() {
         log.info("deleteAllMessages - messages.size = ${messages.size}")
         if (messages.isEmpty()) return
         if (messages.size == 1) {
-            this.iterableHistory
+            val channelMessages = this.iterableHistory
                 .takeAsync(1) // Collect 1000 messages
                 .thenApply {
                     it.toList()
-                }.get()[0]
+                }
+            if(channelMessages.get().isEmpty()) return
+            channelMessages.get()[0]
                 .delete().queue()
         } else {
             messages.chunked(100).forEach {
@@ -145,8 +155,28 @@ fun TextChannel.sendYoutubeEmbed(
         )
     )
 
+
+
     val trackNames = tracks.map { it.info.title }
     log.info("trackNames : $trackNames")
+
+    val playButton = button(
+        id = "playButton",
+        style = ButtonStyle.PRIMARY,
+        label = "재생",
+    )
+
+    val stopButton = button(
+        id = "stopButton",
+        style = ButtonStyle.DANGER,
+        label = "정지",
+    )
+
+    val skipButton = button(
+        id = "skipButton",
+        style = ButtonStyle.SECONDARY,
+        label = "다음곡",
+    )
 
     val menu = StringSelectMenu(
         customId = "trackBox",
@@ -162,16 +192,19 @@ fun TextChannel.sendYoutubeEmbed(
         }
     )
 
+
     log.info("youtubeIdentity : $youtubeIdentity")
+    val actionRowsMap = mapOf(
+        ComponentTypes.BUTTON to listOf(playButton, stopButton, skipButton),
+        ComponentTypes.STRING_MENU to listOf(menu)
+    )
     sendEmbed(
         title = "$title",
         description = description,
         author = "YT 채널 :$author",
         thumbnail = youtubeIdentity.isNotEmpty().let {  "https://i.ytimg.com/vi/${youtubeIdentity}/hqdefault.jpg"},
         fields = fields,
-        actionRows = listOf(
-            menu,
-        )
+        actionRowsMap = actionRowsMap,
     )
 }
 
@@ -181,7 +214,7 @@ fun TextChannel.sendEmbed(
     author: String,
     thumbnail: String?=null,
     fields: List<Field> = listOf(),
-    actionRows: List<ItemComponent> = listOf(),
+    actionRowsMap: Map<ComponentTypes,List<ItemComponent>> = mapOf(),
 ) {
     // 1. 채널의 기존 메세지 삭제
     this.deleteAllMessages()
@@ -205,9 +238,12 @@ fun TextChannel.sendEmbed(
     val sendMessageEmbeds = this
         .sendMessageEmbeds(messageEmbed)
 
-    if(actionRows.isNotEmpty()) {
-        sendMessageEmbeds
-            .addActionRow(actionRows)
+
+    if(actionRowsMap.isNotEmpty()) {
+        actionRowsMap.forEach { (key, value) ->
+            sendMessageEmbeds
+                .addActionRow(value)
+        }
     }
 
     sendMessageEmbeds
