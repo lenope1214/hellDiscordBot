@@ -1,22 +1,22 @@
 package kr.wearebaord.hellbot.listeners.music
 
-import kr.wearebaord.hellbot.PREFIX
 import kr.wearebaord.hellbot.common.*
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 import kr.wearebaord.hellbot.music.PlayerManager
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
+import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent
 
 object PlayListener : ListenerAdapter() {
     val log = LoggerFactory.getLogger(PlayListener::class.java)
 
-    private val commands: List<String> = listOf("p", "play", "ㅔ", "ㅔㅣ묘", "재생", "노래",)
+    private val commands: List<String> = listOf("p", "play", "ㅔ", "ㅔㅣ묘", "재생", "노래")
     override fun onMessageReceived(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
         val command = parseCommand(raw)
         val content = parseContent(raw)
-        if(isInvalidMessage(event)) return
+        if (isInvalidMessage(event)) return
         if (!commands.contains(command)) return
         println("play command")
 
@@ -31,6 +31,24 @@ object PlayListener : ListenerAdapter() {
 
 
         play(event, content)
+    }
+
+    override fun onGenericSelectMenuInteraction(event: GenericSelectMenuInteractionEvent<*, *>) {
+        log.info("onGenericSelectMenuInteraction - ${event.componentId}")
+        log.info("getComponent : ${event.component}")
+        when (event.componentId) {
+            "trackBox" -> {
+                val values: List<Int> = event.values.map {
+                    it as String
+                    // 숫자 외 제거
+                    it.replace("/[^0-9]/g", "")
+                    log.info("value: ${it.toLong()}")
+                    it.toInt()
+                }
+
+                PlayerManager.INSTANCE.jumpTo(event.channel as TextChannel, values[0])
+            }
+        }
     }
 
     private fun play(event: MessageReceivedEvent, url: String) {
