@@ -32,10 +32,25 @@ class TrackScheduler(
     fun nextTrack() {
         // noInterrupt() is a method on AudioPlayer which is used to make sure the current track finishes playing
         // 만약 다음 노래가 없다면 종료
-        if(queue.isEmpty()) {
-            return
+        log.info("nextTrack - queue size = ${queue.size}")
+        if (queue.isEmpty()) {
+            player.stopTrack()
+//            return
         }
         player.startTrack(queue.poll()?.makeClone(), false)
+    }
+
+    fun jumpTrack(index: Int) {
+        log.info("jumpTrack - index = $index")
+        log.info("jumpTrack - queue size = ${queue.size}")
+
+        // 인덱스가 유효한 범위 내에 있는지 확인
+        if (index > 0 && index <= queue.size) {
+            val track = queue.elementAt(index - 1)
+            queue.remove(track)
+            // 다음 트랙으로 이동
+            player.startTrack(track.makeClone(), false)
+        }
     }
 
     override fun onPlayerPause(player: AudioPlayer?) {
@@ -62,9 +77,19 @@ class TrackScheduler(
     }
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack?, endReason: AudioTrackEndReason) {
-        if(!endReason.mayStartNext){
+        // logging endReason
+        log.info("track: ${track}, onTrackEnd: $endReason")
+        if (endReason == AudioTrackEndReason.REPLACED){
+            log.info("Audio is REPLACED")
+            return
+        }
+        else if (endReason == AudioTrackEndReason.FINISHED) {
             nextTrack()
-        }else{
+        }
+        else if(
+            endReason == AudioTrackEndReason.LOAD_FAILED ||
+            endReason == AudioTrackEndReason.STOPPED
+            ) {
             // stoptrack
             player.stopTrack()
         }

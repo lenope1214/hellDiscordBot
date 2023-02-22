@@ -8,7 +8,7 @@ services:
     networks:
       - hellbot_network
     volumes:
-      - ./logs:/logs
+      - ./logs:/home/hellbot/logs
     depends_on:
       - hellbot_mariadb
 

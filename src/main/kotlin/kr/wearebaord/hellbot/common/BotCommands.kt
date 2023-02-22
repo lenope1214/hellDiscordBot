@@ -1,12 +1,26 @@
 package kr.wearebaord.hellbot.common
 
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack
+import dev.minn.jda.ktx.interactions.components.SelectOption
+import dev.minn.jda.ktx.interactions.components.StringSelectMenu
 import kr.wearebaord.hellbot.PREFIX
 import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
+import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.MessageEmbed.Field
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.interactions.components.ItemComponent
+import org.slf4j.LoggerFactory
+import java.awt.Color
+
+
+class BotCommands
+
+private val log = LoggerFactory.getLogger(BotCommands::class.java)
 
 
 fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild) {
@@ -66,14 +80,136 @@ fun isInvalidMessage(event: MessageReceivedEvent): Boolean {
 }
 
 fun parseCommand(raw: String): String {
+    if (raw.isEmpty()) return ""
+
     val substring = raw.substring(PREFIX.length)
     val split = substring.split(" ")
     return split[0]
 }
+
 fun parseContent(raw: String): String {
+    if (raw.isEmpty()) return ""
+
     // split 후 1번 인덱스부터 끝까지
     val substring = raw.substring(PREFIX.length)
     val split = substring.split(" ")
     val subList = split.subList(1, split.size)
     return subList.joinToString(" ")
+}
+
+private fun TextChannel.deleteAllMessages() {
+    try {
+        val messages = this.iterableHistory
+            .takeAsync(1000) // Collect 1000 messages
+            .thenApply {
+                it.toList()
+            }.get()
+        // message를 100개 단위로 나눠서 삭제
+        log.info("deleteAllMessages - messages.size = ${messages.size}")
+        if (messages.isEmpty()) return
+        if (messages.size == 1) {
+            this.iterableHistory
+                .takeAsync(1) // Collect 1000 messages
+                .thenApply {
+                    it.toList()
+                }.get()[0]
+                .delete().queue()
+        } else {
+            messages.chunked(100).forEach {
+                this.deleteMessages(it).queue()
+            }
+        }
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+        log.error("채널의 메세지 삭제 실패 이유 : ${e.message}")
+    }
+}
+
+fun TextChannel.sendYoutubeEmbed(
+    url: String,
+    title: String,
+    description: String = "이 노래를 재생합니다.",
+    author: String,
+    duration: Long = 0,
+    youtubeIdentity: String = "",
+    tracks: List<AudioTrack> = listOf(),
+) {
+    var fields = mutableListOf<Field>()
+
+    fields.add(
+        Field(
+            "노래 길이",
+            duration.convertMsToMmSs(),
+            true,
+        )
+    )
+
+    val trackNames = tracks.map { it.info.title }
+    log.info("trackNames : $trackNames")
+
+    val menu = StringSelectMenu(
+        customId = "trackBox",
+        placeholder = "StringSelectMenu",
+        options = trackNames.mapIndexed { index, trackName ->
+            log.info("trackName : $trackName")
+            log.info("index : $index")
+            SelectOption(
+                trackName,
+                index.toString(),
+                default = index == 0
+            )
+        }
+    )
+
+    log.info("youtubeIdentity : $youtubeIdentity")
+    sendEmbed(
+        title = "$title",
+        description = description,
+        author = "YT 채널 :$author",
+        thumbnail = youtubeIdentity.isNotEmpty().let {  "https://i.ytimg.com/vi/${youtubeIdentity}/hqdefault.jpg"},
+        fields = fields,
+        actionRows = listOf(
+            menu,
+        )
+    )
+}
+
+fun TextChannel.sendEmbed(
+    title: String,
+    description: String = "이 노래를 재생합니다.",
+    author: String,
+    thumbnail: String?=null,
+    fields: List<Field> = listOf(),
+    actionRows: List<ItemComponent> = listOf(),
+) {
+    // 1. 채널의 기존 메세지 삭제
+    this.deleteAllMessages()
+
+    // 2. 새로운 메세지 생성
+    val builder = EmbedBuilder()
+
+    fields.forEach {
+        builder.addField(it)
+    }
+
+    log.info("thumbnail : $thumbnail")
+    val messageEmbed = builder.setAuthor("HellBot")
+        .setTitle(title)
+        .setDescription(description)
+        .setAuthor(author)
+        .setThumbnail(thumbnail)
+        .setColor(Color(0xFF7B96))
+        .build()
+
+    val sendMessageEmbeds = this
+        .sendMessageEmbeds(messageEmbed)
+
+    if(actionRows.isNotEmpty()) {
+        sendMessageEmbeds
+            .addActionRow(actionRows)
+    }
+
+    sendMessageEmbeds
+        .queue()
 }
