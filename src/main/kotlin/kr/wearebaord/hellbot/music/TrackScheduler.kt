@@ -7,6 +7,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.MessageEmbed
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import org.slf4j.LoggerFactory
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
@@ -18,6 +19,10 @@ class TrackScheduler(
     val queue: BlockingQueue<AudioTrack> = LinkedBlockingQueue()
 
     private val log = LoggerFactory.getLogger(TrackScheduler::class.java)
+
+    init{
+        player.volume = 30
+    }
 
     fun queue(track: AudioTrack) {
         // 한글로 주석 작성
@@ -83,15 +88,14 @@ class TrackScheduler(
             log.info("Audio is REPLACED")
             return
         }
-        else if (endReason == AudioTrackEndReason.FINISHED) {
-            nextTrack()
-        }
-        else if(
+        else if (endReason == AudioTrackEndReason.FINISHED ||
             endReason == AudioTrackEndReason.LOAD_FAILED ||
-            endReason == AudioTrackEndReason.STOPPED
-            ) {
-            // stoptrack
-            player.stopTrack()
+            endReason == AudioTrackEndReason.STOPPED) {
+            if (track != null) {
+                val channel = track.userData as TextChannel
+                PlayerManager.INSTANCE.next(channel)
+            }
+            return
         }
 
 

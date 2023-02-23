@@ -43,7 +43,7 @@ class PlayerManager {
                     if(track.info.title == null){
                         throw MusicTitleIsNullException()
                     }
-                    track.userData = track.info.title
+                    track.userData = channel
 
                     musicManager.queue(track)
 

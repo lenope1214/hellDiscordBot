@@ -16,8 +16,11 @@ object PlayListener : ListenerAdapter() {
         val raw: String = event.message.contentRaw
         val command = parseCommand(raw)
         val content = parseContent(raw)
-        if (isInvalidMessage(event)) return
         if (!commands.contains(command)) return
+        if(isInvalidMessage(event)) {
+            event.message.delete().queue()
+            return
+        }
         println("play command")
 
         val channel = event.channel
