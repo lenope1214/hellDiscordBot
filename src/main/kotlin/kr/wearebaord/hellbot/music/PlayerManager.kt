@@ -26,7 +26,7 @@ class PlayerManager {
         AudioSourceManagers.registerLocalSource(this.audioPlayerManager)
     }
 
-    fun getMusicManager(guild: Guild): GuildMusicManager {
+    private fun getMusicManager(guild: Guild): GuildMusicManager {
         return this.musicManagers.computeIfAbsent(guild.idLong) {
             val guildMusicManagers = GuildMusicManager(this.audioPlayerManager)
             guild.audioManager.sendingHandler = guildMusicManagers.sendHandler
@@ -40,7 +40,7 @@ class PlayerManager {
         this.audioPlayerManager.loadItemOrdered(musicManager, trackUrl, object : AudioLoadResultHandler {
             override fun trackLoaded(track: AudioTrack) {
                 try {
-                    if(track.info.title == null){
+                    if (track.info.title == null) {
                         throw MusicTitleIsNullException()
                     }
                     track.userData = channel
@@ -80,6 +80,12 @@ class PlayerManager {
             if (it.isNotEmpty()) it[0] else null
         } ?: return
 
+        val guild = channel.guild
+        val musicManager = getMusicManager(guild).scheduler
+        val pause = musicManager.isPause()
+        val repeat = musicManager.isRepeat()
+
+
         channel.sendYoutubeEmbed(
             url = firstTrack.info.uri,
             title = firstTrack.info.title,
@@ -87,6 +93,8 @@ class PlayerManager {
             duration = firstTrack.duration,
             youtubeIdentity = firstTrack.identifier,
             tracks = trackHash[channel.guild.idLong]!!,
+            isPause = pause,
+            isRepeat = repeat,
         )
     }
 
@@ -111,7 +119,7 @@ class PlayerManager {
         val musicManager = getMusicManager(guild).scheduler
         musicManager.nextTrack()
         if (tracks == null || tracks.size == 1) { // 1개 남았을 때도 스킵되면 없으므로 종료되어야 함.
-            reset(channel)
+            stop(channel)
         } else {
             trackHash[guild.idLong] = tracks.drop(1)
             println("tracks.size : ${trackHash[guild.idLong]?.size}")
@@ -127,7 +135,7 @@ class PlayerManager {
         // 1개 남았을 때도 스킵되면 없으므로 종료되어야 함.
         // 점프할 인덱스가 전체 개수보다 많으면 종료되어야 함.
         if (tracks == null || tracks.size == 1 || tracks.size <= index) {
-            reset(channel)
+            stop(channel)
         } else {
             trackHash[guild.idLong] = tracks.drop(index)
             println("tracks.size : ${trackHash[guild.idLong]?.size}")
@@ -135,7 +143,7 @@ class PlayerManager {
         }
     }
 
-    fun reset(channel: TextChannel) {
+    fun stop(channel: TextChannel) {
         log.info("resetTrackNames")
         val guild = channel.guild
         trackHash[guild.idLong] = listOf()
@@ -145,6 +153,60 @@ class PlayerManager {
         channel.sendEmbed(
             title = "재생목록이 비었습니다.",
             description = "재생목록을 다시 추가해주세요.",
+            author = TEXT_CHANNEL_NAME,
+        )
+    }
+
+    fun resume(textChannel: TextChannel) {
+        val guild = textChannel.guild
+        val musicManager = getMusicManager(guild)
+        musicManager.scheduler.player.isPaused = false
+        textChannel.sendEmbed(
+            title = "재생을 다시 시작합니다.",
+            description = "재생을 다시 시작합니다.",
+            author = TEXT_CHANNEL_NAME,
+        )
+    }
+
+    fun pause(textChannel: TextChannel) {
+        val guild = textChannel.guild
+        val musicManager = getMusicManager(guild)
+        musicManager.scheduler.player.isPaused = true
+        // 기존 pauseButton을 playButton으로 바꾸는 방식으로 변경
+        sendMessage(textChannel)
+//        textChannel.sendEmbed(
+//            title = "재생을 일시정지합니다.",
+//            description = "재생을 일시정지합니다.",
+//            author = TEXT_CHANNEL_NAME,
+//        )
+    }
+
+    fun prevTrack(textChannel: TextChannel) {
+        val guild = textChannel.guild
+        val musicManager = getMusicManager(guild)
+        val isPrevTrack = musicManager.scheduler.prevTrack()
+        if (!isPrevTrack) {
+            sendMessage(textChannel)
+            return
+        }
+        textChannel.sendEmbed(
+            title = "이전 곡으로 돌아갑니다.",
+            description = "이전 곡으로 돌아갑니다.",
+            author = TEXT_CHANNEL_NAME,
+        )
+    }
+
+    fun repeat(textChannel: TextChannel) {
+        val guild = textChannel.guild
+        val musicManager = getMusicManager(guild)
+        val scheduler = musicManager.scheduler
+        scheduler.let {
+            if (it.isRepeat()) it.doNotRepeat()
+            it.doRepeat()
+        }
+        textChannel.sendEmbed(
+            title = "반복 재생을 ${if (musicManager.scheduler.isRepeat()) "활성화" else "비활성화"}합니다.",
+            description = "반복 재생을 ${if (musicManager.scheduler.isRepeat()) "활성화" else "비활성화"}합니다.",
             author = TEXT_CHANNEL_NAME,
         )
     }

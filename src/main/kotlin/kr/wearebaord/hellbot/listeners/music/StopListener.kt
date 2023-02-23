@@ -44,7 +44,7 @@ object StopListener : ListenerAdapter() {
             return
         }
 
-        PlayerManager.INSTANCE.reset(channel as TextChannel)
+        PlayerManager.INSTANCE.stop(channel as TextChannel)
         self.guild.audioManager.closeAudioConnection()
     }
 }

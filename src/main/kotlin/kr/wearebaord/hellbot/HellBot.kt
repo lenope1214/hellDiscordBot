@@ -21,6 +21,7 @@ val TOKEN: String = Config.getEnvByKey("token")!!
 val TEXT_CHANNEL_NAME: String = Config.getEnvByKey("text_channel_name")?.let { it } ?: "헬파티봇"
 val PREFIX: String = Config.getEnvByKey("prefix")!!
 val OWNER_ID: String = Config.getEnvByKey("owner_id") ?: "0"
+val VOLUME: Int = (Config.getEnvByKey("volume") ?: "10").toInt()
 
 fun makeMessage(event: SlashCommandInteractionEvent, message: String) {
     event.reply(message).setEphemeral(false).queue()
