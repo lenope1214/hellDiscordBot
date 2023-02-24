@@ -5,6 +5,7 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
+import kr.wearebaord.hellbot.VOLUME
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
@@ -16,12 +17,38 @@ import java.util.concurrent.LinkedBlockingQueue
 class TrackScheduler(
     val player: AudioPlayer
 ) : AudioEventAdapter() {
+    private var pause: Boolean = false
+    private var repeat: Boolean = false
+    val lastTrack: AudioTrack?=null
     val queue: BlockingQueue<AudioTrack> = LinkedBlockingQueue()
 
     private val log = LoggerFactory.getLogger(TrackScheduler::class.java)
 
     init{
-        player.volume = 30
+        player.volume = VOLUME!!
+    }
+
+    fun isPause(): Boolean {
+        return pause
+    }
+
+    fun doPause() {
+        pause = true
+    }
+
+    fun doNotPause() {
+        pause = false
+    }
+
+    fun isRepeat(): Boolean {
+        return repeat
+    }
+    fun doRepeat() {
+        repeat = true
+    }
+
+    fun doNotRepeat() {
+        repeat = false
     }
 
     fun queue(track: AudioTrack) {
@@ -38,23 +65,40 @@ class TrackScheduler(
         // noInterrupt() is a method on AudioPlayer which is used to make sure the current track finishes playing
         // 만약 다음 노래가 없다면 종료
         log.info("nextTrack - queue size = ${queue.size}")
-        if (queue.isEmpty()) {
-            player.stopTrack()
-//            return
+
+        if(isRepeat()){
+            // 만약 repeat가 true면 다시 큐에 추가
+            queue.add(lastTrack)
         }
+        else if (queue.isEmpty()) {
+            player.stopTrack()
+        }
+
         player.startTrack(queue.poll()?.makeClone(), false)
     }
 
-    fun jumpTrack(index: Int) {
+    fun jumpTrack(index: Int, repeat: Boolean = false) {
         log.info("jumpTrack - index = $index")
         log.info("jumpTrack - queue size = ${queue.size}")
 
         // 인덱스가 유효한 범위 내에 있는지 확인
         if (index > 0 && index <= queue.size) {
-            val track = queue.elementAt(index - 1)
-            queue.remove(track)
-            // 다음 트랙으로 이동
-            player.startTrack(track.makeClone(), false)
+            // 만약 repeat가 true면 그 사이의 값을 복사해야 함
+            if (repeat) {
+                // 0부터 index-2까지 값을 queue에 복사
+                val tempQueue: BlockingQueue<AudioTrack> = LinkedBlockingQueue()
+                val track = queue.elementAt(index - 1)
+                tempQueue.add(track)
+                for (i in 0 until index - 1) {
+                    tempQueue.add(queue.elementAt(i).makeClone())
+                }
+            }else{
+                val track = queue.elementAt(index - 1)
+                queue.remove(track)
+                // 다음 트랙으로 이동
+                player.startTrack(track.makeClone(), false)
+            }
+
         }
     }
 
@@ -114,5 +158,17 @@ class TrackScheduler(
     override fun onTrackStuck(player: AudioPlayer, track: AudioTrack, thresholdMs: Long) {
         super.onTrackStuck(player, track, thresholdMs)
         log.info("onTrackStuck: $thresholdMs")
+    }
+
+    fun prevTrack():Boolean {
+        log.info("prevTrack - queue size = ${queue.size}")
+        if (lastTrack == null) {
+            player.stopTrack()
+            return false
+        }
+        val newQueue = LinkedBlockingQueue<AudioTrack>()
+        newQueue.offer(lastTrack)
+        newQueue.addAll(queue)
+        return player.startTrack(newQueue.first().makeClone(), false)
     }
 }

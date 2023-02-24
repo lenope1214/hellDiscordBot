@@ -6,6 +6,7 @@ import dev.minn.jda.ktx.interactions.components.StringSelectMenu
 import dev.minn.jda.ktx.interactions.components.button
 import kr.wearebaord.hellbot.PREFIX
 import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
+import kr.wearebaord.hellbot.music.PlayerManager
 import kr.wearebaord.hellbot.music.enums.ComponentTypes
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.Permission
@@ -14,6 +15,7 @@ import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed.Field
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.ItemComponent
@@ -144,6 +146,8 @@ fun TextChannel.sendYoutubeEmbed(
     duration: Long = 0,
     youtubeIdentity: String = "",
     tracks: List<AudioTrack> = listOf(),
+    isPause: Boolean = false,
+    isRepeat: Boolean = false,
 ) {
     var fields = mutableListOf<Field>()
 
@@ -161,9 +165,9 @@ fun TextChannel.sendYoutubeEmbed(
     log.info("trackNames : $trackNames")
 
     val playButton = button(
-        id = "playButton",
+        id = if (isPause) "playButton" else "pauseButton",
         style = ButtonStyle.PRIMARY,
-        label = "재생",
+        label = if (isPause) "재생" else "일시정지",
     )
 
     val stopButton = button(
@@ -176,6 +180,12 @@ fun TextChannel.sendYoutubeEmbed(
         id = "skipButton",
         style = ButtonStyle.SECONDARY,
         label = "다음곡",
+    )
+
+    val repeatButton = button(
+        id = "repeatButton",
+        label = if(isRepeat) "반복해제" else "반복하기",
+        emoji = Emoji.fromUnicode(if(isRepeat) "🔁" else "🔂"),
     )
 
     val menu = StringSelectMenu(
@@ -195,7 +205,12 @@ fun TextChannel.sendYoutubeEmbed(
 
     log.info("youtubeIdentity : $youtubeIdentity")
     val actionRowsMap = mapOf(
-        ComponentTypes.BUTTON to listOf(playButton, stopButton, skipButton),
+        ComponentTypes.BUTTON to listOf(
+            playButton,
+            stopButton,
+            skipButton,
+            repeatButton,
+        ),
         ComponentTypes.STRING_MENU to listOf(menu)
     )
     sendEmbed(

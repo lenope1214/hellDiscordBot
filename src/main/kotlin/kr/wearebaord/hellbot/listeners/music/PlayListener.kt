@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 import kr.wearebaord.hellbot.music.PlayerManager
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent
 
 object PlayListener : ListenerAdapter() {
@@ -50,6 +51,32 @@ object PlayListener : ListenerAdapter() {
                 }
 
                 PlayerManager.INSTANCE.jumpTo(event.channel as TextChannel, values[0])
+            }
+        }
+    }
+
+    override fun onButtonInteraction(event: ButtonInteractionEvent) {
+        // logging event info
+        log.info("onButtonInteraction - ${event.componentId}")
+//        log.info("${event.interaction}")
+        when(event.componentId){
+            "playButton" -> {
+                PlayerManager.INSTANCE.resume(event.channel as TextChannel)
+            }
+            "pauseButton" -> {
+                PlayerManager.INSTANCE.pause(event.channel as TextChannel)
+            }
+            "stopButton" -> {
+                PlayerManager.INSTANCE.stop(event.channel as TextChannel)
+            }
+            "skipButton" -> {
+                PlayerManager.INSTANCE.next(event.channel as TextChannel)
+            }
+            "prevButton" -> {
+                PlayerManager.INSTANCE.prevTrack(event.channel as TextChannel)
+            }
+            "repeatButton" -> {
+                PlayerManager.INSTANCE.repeat(event.channel as TextChannel)
             }
         }
     }
