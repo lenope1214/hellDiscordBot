@@ -205,12 +205,12 @@ fun TextChannel.sendYoutubeEmbed(
 
     log.info("youtubeIdentity : $youtubeIdentity")
     val actionRowsMap = mapOf(
-//        ComponentTypes.BUTTON to listOf(
-//            playButton,
-//            stopButton,
-//            skipButton,
-//            repeatButton,
-//        ),
+        ComponentTypes.BUTTON to listOf(
+            playButton,
+            stopButton,
+            skipButton,
+            repeatButton,
+        ),
         ComponentTypes.STRING_MENU to listOf(menu)
     )
     sendEmbed(

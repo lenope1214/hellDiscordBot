@@ -80,7 +80,6 @@ suspend fun main() {
 
 
     // logging application id
-    println("VERSION = ${Config.getEnvByKey("version")!!}")
     println("TOKEN = ${TOKEN}")
     println("PREFIX = ${PREFIX}")
     println("OWNER_ID = ${OWNER_ID}")
