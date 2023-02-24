@@ -19,9 +19,6 @@
 #docker ps -q --filter "name=laundry-prod-server" | grep -q . && docker stop laundry-prod-server && docker rm laundry-prod-server | true
 docker-compose down
 
-rm -rf build || true
-rm -f hellbot.jar
-
 ## 빌드한 이미지 실행
 #docker run -p 10100:10100 -p 10101:10101 -d --name=hellbot lenope1214/hellbot -v logs:/logs
 docker-compose up -d

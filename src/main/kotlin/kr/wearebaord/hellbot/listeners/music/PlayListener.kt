@@ -1,11 +1,18 @@
 package kr.wearebaord.hellbot.listeners.music
 
+import dev.minn.jda.ktx.interactions.components.button
+import kr.wearebaord.hellbot.BOT_VERSION
+import kr.wearebaord.hellbot.PREFIX
+import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
 import kr.wearebaord.hellbot.common.*
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 import kr.wearebaord.hellbot.music.PlayerManager
+import kr.wearebaord.hellbot.music.enums.EmojiValue
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
+import net.dv8tion.jda.api.entities.emoji.Emoji
+import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent
 
@@ -13,16 +20,34 @@ object PlayListener : ListenerAdapter() {
     val log = LoggerFactory.getLogger(PlayListener::class.java)
 
     private val commands: List<String> = listOf("p", "play", "ㅔ", "ㅔㅣ묘", "재생", "노래")
+
+    override fun onGuildReady(event: GuildReadyEvent) {
+        val guild = event.guild
+        val channels = guild.getTextChannelsByName(TEXT_CHANNEL_NAME, true)!! as List<TextChannel>
+        channels.forEach {
+            it.deleteAllMessages()
+            it.sendMessage("봇이 재시작되었습니다. 현재 버전 : ${BOT_VERSION}").queue()
+        }
+    }
+
     override fun onMessageReceived(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
-        val command = parseCommand(raw)
+        val command = try {
+            parseCommand(raw)
+        } catch (e: IllegalArgumentException) {
+            return
+        }
+        if (command.isNullOrBlank()) return
         val content = parseContent(raw)
-        if (!commands.contains(command)) return
-        if(isInvalidMessage(event)) {
+
+        // 아래 두 개는 한 쌍
+        if (doNotProcessMessage(command, commands)) return
+        log.info("isInvalidMessage(event) : ${isInvalidMessage(event)}")
+        if (isInvalidMessage(event)) {
             event.message.delete().queue()
             return
         }
-        println("play command")
+        log.info("play command by ${event.member!!.effectiveName}")
 
         val channel = event.channel
         val member = event.member
@@ -59,15 +84,17 @@ object PlayListener : ListenerAdapter() {
         // logging event info
         log.info("onButtonInteraction - ${event.componentId}")
 //        log.info("${event.interaction}")
-        when(event.componentId){
+        when (event.componentId) {
             "playButton" -> {
+                event.editMessage("⏸").queue()
                 PlayerManager.INSTANCE.resume(event.channel as TextChannel)
             }
             "pauseButton" -> {
+                event.editMessage("▶").queue()
                 PlayerManager.INSTANCE.pause(event.channel as TextChannel)
             }
             "stopButton" -> {
-                PlayerManager.INSTANCE.stop(event.channel as TextChannel)
+                PlayerManager.INSTANCE.stop(event.channel as TextChannel, event.member!!.effectiveName)
             }
             "skipButton" -> {
                 PlayerManager.INSTANCE.next(event.channel as TextChannel)
@@ -76,7 +103,19 @@ object PlayListener : ListenerAdapter() {
                 PlayerManager.INSTANCE.prevTrack(event.channel as TextChannel)
             }
             "repeatButton" -> {
+                log.info("반복버튼 눌림")
+                val beforeEmoji = event.button.emoji
+                log.info("beforeEmoji: $beforeEmoji")
+                val isRepeat = beforeEmoji == EmojiValue.INFINITY.fromUnicode()
+                log.info("isRepeat: $isRepeat")
+                try {
+                    event.editButton(event.component.withEmoji(if (isRepeat) EmojiValue.EXIT.fromUnicode() else EmojiValue.INFINITY.fromUnicode())).queue()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                log.info("process repeat")
                 PlayerManager.INSTANCE.repeat(event.channel as TextChannel)
+                log.info("end process repeat")
             }
         }
     }
@@ -105,7 +144,7 @@ object PlayListener : ListenerAdapter() {
             log.error("error: ${e.message}")
         } finally {
             // delete command message
-            event.message.delete().queue()
+            //  event.message.delete().queue()
         }
     }
 }

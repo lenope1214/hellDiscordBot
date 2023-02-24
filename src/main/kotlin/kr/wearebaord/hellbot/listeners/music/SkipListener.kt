@@ -1,5 +1,6 @@
 package kr.wearebaord.hellbot.listeners.music
 
+import kr.wearebaord.hellbot.common.doNotProcessMessage
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
@@ -15,8 +16,14 @@ object SkipListener : ListenerAdapter() {
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
-        val command = parseCommand(raw)
-        if (!commands.contains(command)) return
+        val command = try{
+            parseCommand(raw)
+        }catch (e: IllegalArgumentException) {
+            return
+        }
+
+        // 아래 두 개는 한 쌍
+        if (doNotProcessMessage(command, commands)) return
         if(isInvalidMessage(event)) {
             event.message.delete().queue()
             return
