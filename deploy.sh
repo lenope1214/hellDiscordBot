@@ -13,7 +13,7 @@
 #  기존 hellbot image 삭제
 #docker rmi lenope1214/hellbot
 
-docker build -t lenope1214/hellbot .
+#docker build -t lenope1214/hellbot .
 
 ## 기존에 돌아가던 컨테이너 삭제
 #docker ps -q --filter "name=laundry-prod-server" | grep -q . && docker stop laundry-prod-server && docker rm laundry-prod-server | true
