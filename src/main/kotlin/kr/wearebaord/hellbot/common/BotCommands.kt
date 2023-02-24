@@ -5,9 +5,12 @@ import dev.minn.jda.ktx.interactions.components.SelectOption
 import dev.minn.jda.ktx.interactions.components.StringSelectMenu
 import dev.minn.jda.ktx.interactions.components.button
 import kr.wearebaord.hellbot.PREFIX
+import kr.wearebaord.hellbot.SHOW_BUTTONS
 import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
+import kr.wearebaord.hellbot.listeners.music.PlayListener
 import kr.wearebaord.hellbot.music.PlayerManager
 import kr.wearebaord.hellbot.music.enums.ComponentTypes
+import kr.wearebaord.hellbot.music.enums.EmojiValue
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
@@ -17,6 +20,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.interactions.components.ActionComponent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.ItemComponent
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
@@ -70,27 +74,40 @@ fun leaveBot(channel: MessageChannel, guild: Guild) {
     }
 }
 
+// 올바른 PREFIX로 시작하는지 확인하는 함수
+fun String.isCorrectPrefix(): Boolean {
+    return this.startsWith(PREFIX, ignoreCase = true)
+}
+
+
+fun doNotProcessMessage(command: String, commands: List<String>): Boolean {
+    return !(commands.contains(command))
+}
+
 fun isInvalidMessage(event: MessageReceivedEvent): Boolean {
     val raw: String = event.message.contentRaw
     val channel = event.channel
 
+    log.info("---------------1-----------------")
     // raw의 대소문자에 상관없이 prefix로 시작하는지 확인한다.
-    if (!raw.startsWith(PREFIX, ignoreCase = true)) return true
+    if (!raw.isCorrectPrefix()) return true
 
-    // 대상이 봇이 아니고 채널이 Config.getEnvByKey("text_channel_name")과 다르다면 알림을 주고 종료
+    log.info("---------------2-----------------")
+// 대상이 봇이 아니고 채널이 Config.getEnvByKey("text_channel_name")과 다르다면 알림을 주고 종료
     if (!event.author.isBot && channel.name != TEXT_CHANNEL_NAME) {
         channel.sendMessage("채팅 채널 이름이 `$TEXT_CHANNEL_NAME`인 채널에서 요청해야합니다.")
-            .queue{
+            .queue {
                 it.delete().queueAfter(5, TimeUnit.SECONDS)
             }
         return true
     }
 
+    log.info("---------------3-----------------")
     return false
 }
 
 fun parseCommand(raw: String): String {
-    if (raw.isEmpty()) return ""
+    if (raw.isEmpty() && !raw.isCorrectPrefix()) throw IllegalArgumentException("raw is not correct message")
 
     val substring = raw.substring(PREFIX.length)
     val split = substring.split(" ")
@@ -107,7 +124,7 @@ fun parseContent(raw: String): String {
     return subList.joinToString(" ")
 }
 
-private fun TextChannel.deleteAllMessages() {
+fun TextChannel.deleteAllMessages() {
     try {
         val messages = this.iterableHistory
             .takeAsync(1000) // Collect 1000 messages
@@ -123,7 +140,7 @@ private fun TextChannel.deleteAllMessages() {
                 .thenApply {
                     it.toList()
                 }
-            if(channelMessages.get().isEmpty()) return
+            if (channelMessages.get().isEmpty()) return
             channelMessages.get()[0]
                 .delete().queue()
         } else {
@@ -160,7 +177,6 @@ fun TextChannel.sendYoutubeEmbed(
     )
 
 
-
     val trackNames = tracks.map { it.info.title }
     log.info("trackNames : $trackNames")
 
@@ -176,16 +192,18 @@ fun TextChannel.sendYoutubeEmbed(
         label = "정지",
     )
 
-    val skipButton = button(
-        id = "skipButton",
-        style = ButtonStyle.SECONDARY,
-        label = "다음곡",
-    )
+    val skipButton = if (trackNames.size > 1) {
+        button(
+            id = "skipButton",
+            style = ButtonStyle.SECONDARY,
+            label = "다음곡",
+        )
+    } else null
 
     val repeatButton = button(
         id = "repeatButton",
-        label = if(isRepeat) "반복해제" else "반복하기",
-        emoji = Emoji.fromUnicode(if(isRepeat) "🔁" else "🔂"),
+        label = if (isRepeat) "반복해제" else "반복하기",
+        emoji = if (isRepeat)EmojiValue.EXIT.fromUnicode() else EmojiValue.INFINITY.fromUnicode(),
     )
 
     val menu = StringSelectMenu(
@@ -204,20 +222,30 @@ fun TextChannel.sendYoutubeEmbed(
 
 
     log.info("youtubeIdentity : $youtubeIdentity")
-    val actionRowsMap = mapOf(
-        ComponentTypes.BUTTON to listOf(
+    var actionRowsMap: Map<ComponentTypes, List<ActionComponent>> = mapOf(
+        ComponentTypes.STRING_MENU to listOf(menu),
+    )
+
+    if (SHOW_BUTTONS) {
+        var buttons = ComponentTypes.BUTTON to mutableListOf(
             playButton,
             stopButton,
-            skipButton,
             repeatButton,
-        ),
-        ComponentTypes.STRING_MENU to listOf(menu)
-    )
+        )
+        if (skipButton != null) {
+            buttons.second.add(skipButton)
+        }
+        actionRowsMap = actionRowsMap.plus(
+            buttons
+        )
+    }
+
+
     sendEmbed(
         title = "$title",
         description = description,
         author = "YT 채널 :$author",
-        thumbnail = youtubeIdentity.isNotEmpty().let {  "https://i.ytimg.com/vi/${youtubeIdentity}/hqdefault.jpg"},
+        thumbnail = youtubeIdentity.isNotEmpty().let { "https://i.ytimg.com/vi/${youtubeIdentity}/hqdefault.jpg" },
         fields = fields,
         actionRowsMap = actionRowsMap,
     )
@@ -227,9 +255,9 @@ fun TextChannel.sendEmbed(
     title: String,
     description: String = "이 노래를 재생합니다.",
     author: String,
-    thumbnail: String?=null,
+    thumbnail: String? = null,
     fields: List<Field> = listOf(),
-    actionRowsMap: Map<ComponentTypes,List<ItemComponent>> = mapOf(),
+    actionRowsMap: Map<ComponentTypes, List<ItemComponent>> = mapOf(),
 ) {
     // 1. 채널의 기존 메세지 삭제
     this.deleteAllMessages()
@@ -254,7 +282,7 @@ fun TextChannel.sendEmbed(
         .sendMessageEmbeds(messageEmbed)
 
 
-    if(actionRowsMap.isNotEmpty()) {
+    if (actionRowsMap.isNotEmpty()) {
         actionRowsMap.forEach { (key, value) ->
             sendMessageEmbeds
                 .addActionRow(value)

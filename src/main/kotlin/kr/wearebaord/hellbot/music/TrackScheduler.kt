@@ -19,7 +19,7 @@ class TrackScheduler(
 ) : AudioEventAdapter() {
     private var pause: Boolean = false
     private var repeat: Boolean = false
-    val lastTrack: AudioTrack?=null
+    private var lastTrack: AudioTrack?=null
     val queue: BlockingQueue<AudioTrack> = LinkedBlockingQueue()
 
     private val log = LoggerFactory.getLogger(TrackScheduler::class.java)
@@ -56,6 +56,7 @@ class TrackScheduler(
         // 만약 플레이어가 현재 재생중이지 않다면 바로 재생, 큐에 추가
         if (!player.startTrack(track, true)) {
             queue.offer(track)
+            lastTrack = track
         }
 
 
@@ -66,7 +67,7 @@ class TrackScheduler(
         // 만약 다음 노래가 없다면 종료
         log.info("nextTrack - queue size = ${queue.size}")
 
-        if(isRepeat()){
+        if(isRepeat() && lastTrack != null){
             // 만약 repeat가 true면 다시 큐에 추가
             queue.add(lastTrack)
         }
@@ -132,9 +133,12 @@ class TrackScheduler(
             log.info("Audio is REPLACED")
             return
         }
+        else if(endReason == AudioTrackEndReason.STOPPED){
+            log.info("Audio is STOPPED")
+            return
+        }
         else if (endReason == AudioTrackEndReason.FINISHED ||
-            endReason == AudioTrackEndReason.LOAD_FAILED ||
-            endReason == AudioTrackEndReason.STOPPED) {
+            endReason == AudioTrackEndReason.LOAD_FAILED) {
             if (track != null) {
                 val channel = track.userData as TextChannel
                 PlayerManager.INSTANCE.next(channel)

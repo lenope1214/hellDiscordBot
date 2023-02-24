@@ -14,14 +14,17 @@ import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.system.exitProcess
 
 var JDA: net.dv8tion.jda.api.JDA? = null
+val BOT_VERSION: String = Config.getEnvByKey("bot_version") ?: LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")).toString()
 val TOKEN: String = Config.getEnvByKey("token")!!
 val TEXT_CHANNEL_NAME: String = Config.getEnvByKey("text_channel_name")?.let { it } ?: "헬파티봇"
 val PREFIX: String = Config.getEnvByKey("prefix")!!
 val OWNER_ID: String = Config.getEnvByKey("owner_id") ?: "0"
 val VOLUME: Int = (Config.getEnvByKey("volume") ?: "10").toInt()
+val SHOW_BUTTONS : Boolean = (Config.getEnvByKey("show_buttons") ?: "true").toBoolean()
 
 fun makeMessage(event: SlashCommandInteractionEvent, message: String) {
     event.reply(message).setEphemeral(false).queue()
@@ -85,6 +88,8 @@ suspend fun main() {
     println("OWNER_ID = ${OWNER_ID}")
     println("TEXT_CHANNEL_NAME = ${TEXT_CHANNEL_NAME}")
     println("Application ID: ${JDA!!.selfUser.id}")
+    println("VOLUME = ${VOLUME}")
+    println("SHOW_BUTTONS = ${SHOW_BUTTONS}")
 }
 
 fun configureMemoryUsage(builder: JDABuilder): JDABuilder {
