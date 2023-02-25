@@ -3,9 +3,10 @@ package kr.wearebaord.hellbot
 import kr.wearebaord.hellbot.configs.Config
 import kr.wearebaord.hellbot.listeners.DefaultListener
 import kr.wearebaord.hellbot.listeners.MessageListener
-import kr.wearebaord.hellbot.listeners.music.PlayListener
-import kr.wearebaord.hellbot.listeners.music.SkipListener
-import kr.wearebaord.hellbot.listeners.music.StopListener
+import kr.wearebaord.hellbot.listeners.MusicListener
+import kr.wearebaord.hellbot.listeners.music.PlayCommand
+import kr.wearebaord.hellbot.listeners.music.SkipCommand
+import kr.wearebaord.hellbot.listeners.music.StopCommand
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -18,7 +19,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.system.exitProcess
 
 var JDA: net.dv8tion.jda.api.JDA? = null
-val BOT_VERSION: String = Config.getEnvByKey("bot_version") ?: LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")).toString()
+val BOT_VERSION: String = Config.getEnvByKey("bot_version") ?: LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toString()
 val TOKEN: String = Config.getEnvByKey("token")!!
 val TEXT_CHANNEL_NAME: String = Config.getEnvByKey("text_channel_name")?.let { it } ?: "헬파티봇"
 val PREFIX: String = Config.getEnvByKey("prefix")!!
@@ -66,9 +67,7 @@ suspend fun main() {
         .addEventListeners(
             DefaultListener,
             MessageListener,
-            PlayListener,
-            StopListener,
-            SkipListener,
+            MusicListener,
         )
         .build()
         .awaitReady()

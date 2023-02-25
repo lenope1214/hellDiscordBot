@@ -1,35 +1,25 @@
 package kr.wearebaord.hellbot.listeners.music
 
-import kr.wearebaord.hellbot.common.doNotProcessMessage
+import kr.wearebaord.hellbot.common.isValidContentRaw
+import kr.wearebaord.hellbot.music.PlayerManager
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
-import kr.wearebaord.hellbot.common.isInvalidMessage
-import kr.wearebaord.hellbot.common.parseCommand
-import kr.wearebaord.hellbot.music.PlayerManager
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 
-object StopListener : ListenerAdapter() {
-    val log = LoggerFactory.getLogger(StopListener::class.java)
+object SkipCommand : CommandInterface{
+    val log = LoggerFactory.getLogger(SkipCommand::class.java)
 
-    private val commands: List<String> = listOf("s", "stop", "ㄴ", "ㄴ새ㅔ", "중지")
+    val commands: List<String> = listOf("sk", "skip", "나", "나ㅑㅔ", "넘기기", "다음", "next", "nt", "nxt")
 
-    override fun onMessageReceived(event: MessageReceivedEvent) {
+    override fun onAction(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
-
-        val command = try {
-            parseCommand(raw)
+        try {
+            isValidContentRaw(raw, commands)
         } catch (e: IllegalArgumentException) {
             return
         }
-
-        // 아래 두 개는 한 쌍
-        if (doNotProcessMessage(command, commands)) return
-        if (isInvalidMessage(event)) {
-            event.message.delete().queue()
-            return
-        }
-        println("stop command")
+        println("skip command")
 
         val channel = event.channel
         val self = event.guild.selfMember
@@ -52,7 +42,7 @@ object StopListener : ListenerAdapter() {
             return
         }
 
-        PlayerManager.INSTANCE.stop(channel as TextChannel, event.member!!.effectiveName)
-        self.guild.audioManager.closeAudioConnection()
+        // 다음 노래 재생
+        PlayerManager.INSTANCE.next(channel as TextChannel)
     }
 }
