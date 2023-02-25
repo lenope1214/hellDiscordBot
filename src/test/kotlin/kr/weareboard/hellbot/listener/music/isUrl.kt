@@ -1,6 +1,6 @@
 package kr.weareboard.hellbot.listener.music
 
-import kr.wearebaord.hellbot.listeners.music.PlayListener
+import kr.wearebaord.hellbot.listeners.music.PlayCommand
 import java.net.URI
 import java.net.URISyntaxException
 
@@ -46,7 +46,7 @@ private fun isUrl(url: String): Boolean {
 
         return true
     } catch (e: URISyntaxException) {
-        PlayListener.log.error("Uri is not valid! ${e.message}")
+        PlayCommand.log.error("Uri is not valid! ${e.message}")
         return false
     }
 }

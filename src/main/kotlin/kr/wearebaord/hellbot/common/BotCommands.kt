@@ -7,8 +7,6 @@ import dev.minn.jda.ktx.interactions.components.button
 import kr.wearebaord.hellbot.PREFIX
 import kr.wearebaord.hellbot.SHOW_BUTTONS
 import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
-import kr.wearebaord.hellbot.listeners.music.PlayListener
-import kr.wearebaord.hellbot.music.PlayerManager
 import kr.wearebaord.hellbot.music.enums.ComponentTypes
 import kr.wearebaord.hellbot.music.enums.EmojiValue
 import net.dv8tion.jda.api.EmbedBuilder
@@ -18,10 +16,8 @@ import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed.Field
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
-import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.components.ActionComponent
-import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.ItemComponent
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.slf4j.LoggerFactory
@@ -81,37 +77,34 @@ fun String.isCorrectPrefix(): Boolean {
 
 
 fun doNotProcessMessage(command: String, commands: List<String>): Boolean {
-    return !(commands.contains(command))
-}
-
-fun isInvalidMessage(event: MessageReceivedEvent): Boolean {
-    val raw: String = event.message.contentRaw
-    val channel = event.channel
-
-    log.info("---------------1-----------------")
-    // raw의 대소문자에 상관없이 prefix로 시작하는지 확인한다.
-    if (!raw.isCorrectPrefix()) return true
-
-    log.info("---------------2-----------------")
-// 대상이 봇이 아니고 채널이 Config.getEnvByKey("text_channel_name")과 다르다면 알림을 주고 종료
-    if (!event.author.isBot && channel.name != TEXT_CHANNEL_NAME) {
-        channel.sendMessage("채팅 채널 이름이 `$TEXT_CHANNEL_NAME`인 채널에서 요청해야합니다.")
-            .queue {
-                it.delete().queueAfter(5, TimeUnit.SECONDS)
-            }
-        return true
+    if(!(commands.contains(command))){
+        throw IllegalArgumentException("잘못된 명령어입니다.")
     }
-
-    log.info("---------------3-----------------")
-    return false
+    return true
 }
 
-fun parseCommand(raw: String): String {
-    if (raw.isEmpty() && !raw.isCorrectPrefix()) throw IllegalArgumentException("raw is not correct message")
+fun isValidContentRaw(raw: String, commands: List<String>): String {
 
-    val substring = raw.substring(PREFIX.length)
-    val split = substring.split(" ")
-    return split[0]
+    val command = raw.let {
+        if (it.isEmpty()) {
+            throw IllegalArgumentException("raw is empty")
+        }
+        if (!it.isCorrectPrefix()) {
+            throw IllegalArgumentException("raw is not correct prefix")
+        }
+
+        val prefix = raw.split(" ")[0]
+        val checkCommand = prefix.substring(PREFIX.length)
+        if (!commands.contains(checkCommand)) {
+            throw IllegalArgumentException("raw is not correct message")
+        }
+        checkCommand
+    }
+    return command
+}
+
+fun String.parseCommand(): String {
+    return this.substring(PREFIX.length).split(" ")[0]
 }
 
 fun parseContent(raw: String): String {
@@ -184,6 +177,7 @@ fun TextChannel.sendYoutubeEmbed(
         id = if (isPause) "playButton" else "pauseButton",
         style = ButtonStyle.PRIMARY,
         label = if (isPause) "재생" else "일시정지",
+        emoji = if (isPause) EmojiValue.PLAY.fromUnicode() else EmojiValue.PAUSE.fromUnicode(),
     )
 
     val stopButton = button(

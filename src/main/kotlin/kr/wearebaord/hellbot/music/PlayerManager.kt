@@ -115,7 +115,10 @@ class PlayerManager {
         log.info("addTrackName - result trackNames: $trackNames")
     }
 
-    fun next(channel: TextChannel) {
+    /**
+     * 만약 다음 곡을 재생했다면 true, 종료됐다면 false
+     */
+    fun next(channel: TextChannel): Boolean {
 
         val guild = channel.guild
         val tracks = trackHash[guild.idLong]
@@ -123,12 +126,14 @@ class PlayerManager {
 
         val musicManager = getMusicManager(guild).scheduler
         musicManager.nextTrack()
-        if (tracks == null || tracks.size == 1) { // 1개 남았을 때도 스킵되면 없으므로 종료되어야 함.
+        return if (tracks == null || tracks.size == 1) { // 1개 남았을 때도 스킵되면 없으므로 종료되어야 함.
             stop(channel)
+            false
         } else {
             trackHash[guild.idLong] = tracks.drop(1)
             println("tracks.size : ${trackHash[guild.idLong]?.size}")
             sendMessage(channel)
+            true
         }
     }
 
@@ -159,9 +164,11 @@ class PlayerManager {
         musicManager.stopMusic()
         channel.sendEmbed(
             title = "재생이 종료되었습니다.",
-            description = "${if (stopBy.isNotBlank()){
-                "${stopBy}에 의해 종료되었습니다."
-            } else ""}\n재생목록을 다시 추가해주세요.",
+            description = "${
+                if (stopBy.isNotBlank()) {
+                    "${stopBy}에 의해 종료되었습니다."
+                } else ""
+            }\n재생목록을 다시 추가해주세요.",
             author = TEXT_CHANNEL_NAME,
         )
     }
@@ -180,7 +187,7 @@ class PlayerManager {
         musicManager.scheduler.player.isPaused = true
         musicManager.scheduler.doPause()
         // 기존 pauseButton을 playButton으로 바꾸는 방식으로 변경
-        sendMessage(textChannel)
+//        sendMessage(textChannel)
     }
 
     fun prevTrack(textChannel: TextChannel) {

@@ -2,14 +2,10 @@ package kr.wearebaord.hellbot.listeners
 
 import kr.wearebaord.hellbot.OWNER_ID
 import kr.wearebaord.hellbot.PREFIX
-import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
-import kr.wearebaord.hellbot.common.isInvalidMessage
+import kr.wearebaord.hellbot.common.isValidContentRaw
 import kr.wearebaord.hellbot.common.joinVoiceChannelBot
 import kr.wearebaord.hellbot.common.leaveBot
 import net.dv8tion.jda.api.Permission
-import net.dv8tion.jda.api.entities.Guild
-import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
@@ -24,8 +20,7 @@ class CommandListener : ListenerAdapter() {
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
-
-        if (isInvalidMessage(event)) return
+        isValidContentRaw(raw, listOf("help", "shutdown", "join", "leave"))
 
         when (raw.lowercase()) {
             PREFIX + "help" -> {
