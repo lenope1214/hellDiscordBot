@@ -5,7 +5,9 @@ import kr.wearebaord.hellbot.PREFIX
 import kr.wearebaord.hellbot.common.isValidContentRaw
 import kr.wearebaord.hellbot.common.joinVoiceChannelBot
 import kr.wearebaord.hellbot.common.leaveBot
+import kr.wearebaord.hellbot.common.sendEmbed
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
@@ -44,7 +46,8 @@ class CommandListener : ListenerAdapter() {
 
             PREFIX + "leave" -> {
                 log.info("leave bot by username : ${event.author.name}")
-                leaveBot(event.channel, event.guild)
+                val channel = event.channel as TextChannel
+                leaveBot(event.guild, channel)
             }
         }
 

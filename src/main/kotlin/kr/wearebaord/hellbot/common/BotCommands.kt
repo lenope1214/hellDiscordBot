@@ -61,13 +61,16 @@ fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild) {
 //    channel.sendMessageFormat("음성채널에 연결되었습니다. (%s)", voiceChannel!!.name).queue()
 }
 
-fun leaveBot(channel: MessageChannel, guild: Guild) {
+fun leaveBot(guild: Guild, channel: TextChannel?) {
     // 봇이 음성채널에 있다면 나가게 한다
     val audioManager = guild.audioManager
     if (audioManager.isConnected) {
         audioManager.closeAudioConnection()
-        channel.sendMessage("음성채널에서 나갔습니다.").queue()
     }
+    channel?.sendEmbed(
+        title="봇이 음성채널에서 나갔습니다.",
+        description="봇이 음성채널에서 나갔습니다."
+    )
 }
 
 // 올바른 PREFIX로 시작하는지 확인하는 함수
@@ -248,7 +251,7 @@ fun TextChannel.sendYoutubeEmbed(
 fun TextChannel.sendEmbed(
     title: String,
     description: String = "이 노래를 재생합니다.",
-    author: String,
+    author: String = "",
     thumbnail: String? = null,
     fields: List<Field> = listOf(),
     actionRowsMap: Map<ComponentTypes, List<ItemComponent>> = mapOf(),

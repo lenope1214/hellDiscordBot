@@ -1,6 +1,10 @@
 package kr.wearebaord.hellbot.listeners
 
+import kr.wearebaord.hellbot.BOT_ID
+import kr.wearebaord.hellbot.JDA
+import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
 import kr.wearebaord.hellbot.makeMessage
+import kr.wearebaord.hellbot.music.PlayerManager
 import kr.wearebaord.hellbot.utils.KoreanUtil
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
@@ -46,12 +50,28 @@ object DefaultListener : ListenerAdapter() {
         val member = event.member
 
         // 나갔다면
-        if(channelLeft != null){
-            log.info("${member}가 ${channelLeft?.name}음성 채널에서 나감")
-        val leftMemberSize = member.defaultChannel?.members?.size ?: 0
-            log.info("leftMemberSize: $leftMemberSize")
-            if(leftMemberSize == 1){
-                log.info("member.")
+        if (channelLeft != null) {
+//            log.info("${member}가 ${channelLeft?.name}음성 채널에서 나감")
+            // 현재 서버에 남아있는 멤버 수
+            // member.defaultChannel?.members?.size ?: 0
+
+            val leftChannel = channelLeft.asVoiceChannel()
+            val leftMemberSize = leftChannel.members.size
+//            log.info("leftChannel: $leftChannel")
+//            log.info("leftMemberSize: $leftMemberSize")
+            if (leftMemberSize == 1) {
+                val leftMember = leftChannel.members[0]
+                log.info("leftMember: $leftMember")
+                // 만약 헬파티봇이 혼자 남아있다면 내쫓는다.
+                if(leftMember.id == BOT_ID){
+                    val textChannel = leftChannel.guild.textChannels.find {
+                        it.name == TEXT_CHANNEL_NAME
+                    }
+                    PlayerManager.INSTANCE.leftChannel(
+                        guild = leftChannel.guild,
+                        channel = textChannel,
+                    )
+                }
 //                member.defaultChannel?.sendMessage("${member}님이 나가셨습니다.")?.queue()
 //                member.defaultChannel?.leave()?.queue()
             }

@@ -3,9 +3,8 @@ package kr.wearebaord.hellbot.listeners
 import kr.wearebaord.hellbot.BOT_VERSION
 import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
 import kr.wearebaord.hellbot.common.deleteAllMessages
-import kr.wearebaord.hellbot.common.isValidContentRaw
+import kr.wearebaord.hellbot.common.isCorrectPrefix
 import kr.wearebaord.hellbot.common.parseCommand
-import kr.wearebaord.hellbot.common.parseContent
 import kr.wearebaord.hellbot.listeners.music.PlayCommand
 import kr.wearebaord.hellbot.listeners.music.SkipCommand
 import kr.wearebaord.hellbot.listeners.music.StopCommand
@@ -30,7 +29,13 @@ object MusicListener : ListenerAdapter() {
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
-        if(event.message.contentRaw.isNullOrEmpty())return
+        val contentRaw = event.message.contentRaw
+        if(
+            contentRaw.isNullOrEmpty()
+            && !contentRaw.contains(" ")
+            && !contentRaw.isCorrectPrefix()
+            && contentRaw.length < 3
+        )return
         when(event.message.contentRaw.parseCommand()) {
             in PlayCommand.commands -> {
                 PlayCommand.onAction(event)

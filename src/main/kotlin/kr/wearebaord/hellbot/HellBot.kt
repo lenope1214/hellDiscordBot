@@ -21,6 +21,7 @@ import kotlin.system.exitProcess
 var JDA: net.dv8tion.jda.api.JDA? = null
 val BOT_VERSION: String = Config.getEnvByKey("bot_version") ?: LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toString()
 val TOKEN: String = Config.getEnvByKey("token")!!
+val BOT_ID: String = Config.getEnvByKey("bot_id")!!
 val TEXT_CHANNEL_NAME: String = Config.getEnvByKey("text_channel_name")?.let { it } ?: "헬파티봇"
 val PREFIX: String = Config.getEnvByKey("prefix")!!
 val OWNER_ID: String = Config.getEnvByKey("owner_id") ?: "0"

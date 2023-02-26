@@ -8,6 +8,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
+import kr.wearebaord.hellbot.common.leaveBot
 import kr.wearebaord.hellbot.common.sendEmbed
 import kr.wearebaord.hellbot.common.sendYoutubeEmbed
 import kr.wearebaord.hellbot.exception.MusicTitleIsNullException
@@ -160,8 +161,7 @@ class PlayerManager {
         log.info("resetTrack")
         val guild = channel.guild
         trackHash[guild.idLong] = listOf()
-        val musicManager = getMusicManager(guild)
-        musicManager.stopMusic()
+        leftChannel(guild)
         channel.sendEmbed(
             title = "재생이 종료되었습니다.",
             description = "${
@@ -214,6 +214,12 @@ class PlayerManager {
             if (it.isRepeat()) it.doNotRepeat()
             else it.doRepeat()
         }
+    }
+
+    fun leftChannel(guild: Guild, channel: TextChannel? = null) {
+        val musicManager = getMusicManager(guild)
+        musicManager.stopMusic()
+        leaveBot(guild, channel)
     }
 
     companion object {
