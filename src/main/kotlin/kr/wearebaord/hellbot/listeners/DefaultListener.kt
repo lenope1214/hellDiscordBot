@@ -1,10 +1,17 @@
 package kr.wearebaord.hellbot.listeners
 
+import kr.wearebaord.hellbot.BOT_ID
+import kr.wearebaord.hellbot.JDA
+import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
 import kr.wearebaord.hellbot.makeMessage
+import kr.wearebaord.hellbot.music.PlayerManager
 import kr.wearebaord.hellbot.utils.KoreanUtil
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
+import net.dv8tion.jda.api.events.thread.member.ThreadMemberLeaveEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
@@ -18,7 +25,7 @@ object DefaultListener : ListenerAdapter() {
         log.info("Logged in as ${event.jda.selfUser.name}")
 
         // Sets the global command list to the provided commands (removing all others)
-        
+
         // TODO addCommands는 일일 제한이 있어서 테스트 시에 조심해야 함
         event.jda.updateCommands().addCommands(
             Commands.slash("ping", "Calculate ping of the bot"),
@@ -31,6 +38,44 @@ object DefaultListener : ListenerAdapter() {
                 ),
             Commands.slash("사실부탁임", "사실부탁임 출력")
         ).queue()
+    }
+
+    override fun onGuildVoiceUpdate(event: GuildVoiceUpdateEvent) {
+        // 멤버가 나갔을 때 취할 행동
+        // 해당 음성 채널에 모두가 나갔다면 메세지를 남기고 leave
+//        log.info("==============멤버가 들어오거나 나갔음===============")
+        // 어떠한 멤버가 들어왔거나 나갔을 때,
+        val channelLeft = event.channelLeft // 나갔다면 null이 아님,
+//        val channelJoined = event.channelJoined // 들어왔다면 null이 아님
+        val member = event.member
+
+        // 나갔다면
+        if (channelLeft != null) {
+//            log.info("${member}가 ${channelLeft?.name}음성 채널에서 나감")
+            // 현재 서버에 남아있는 멤버 수
+            // member.defaultChannel?.members?.size ?: 0
+
+            val leftChannel = channelLeft.asVoiceChannel()
+            val leftMemberSize = leftChannel.members.size
+//            log.info("leftChannel: $leftChannel")
+//            log.info("leftMemberSize: $leftMemberSize")
+            if (leftMemberSize == 1) {
+                val leftMember = leftChannel.members[0]
+                log.info("leftMember: $leftMember")
+                // 만약 헬파티봇이 혼자 남아있다면 내쫓는다.
+                if(leftMember.id == BOT_ID){
+                    val textChannel = leftChannel.guild.textChannels.find {
+                        it.name == TEXT_CHANNEL_NAME
+                    }
+                    PlayerManager.INSTANCE.leftChannel(
+                        guild = leftChannel.guild,
+                        channel = textChannel,
+                    )
+                }
+//                member.defaultChannel?.sendMessage("${member}님이 나가셨습니다.")?.queue()
+//                member.defaultChannel?.leave()?.queue()
+            }
+        }
     }
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
