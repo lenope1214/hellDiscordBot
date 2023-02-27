@@ -1,6 +1,7 @@
 package kr.wearebaord.hellbot.configs
 
 import io.github.cdimascio.dotenv.Dotenv
+import io.github.cdimascio.dotenv.dotenv
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.system.exitProcess
@@ -8,13 +9,19 @@ import kotlin.system.exitProcess
 class Config {
 
     companion object {
+        private val directory = "src/"
         private val requiredEnvironments: List<String> = listOf(
             "TOKEN",
+            "BOT_ID",
             "PREFIX",
+            "TEXT_CHANNEL_ID",
+            "TEXT_CHANNEL_NAME",
         )
         private val log: Logger = LoggerFactory.getLogger(Config::class.java)
-        private val dotenv: Dotenv = Dotenv.load();
-        fun getEnvByKey(key: String) = dotenv[key.uppercase()]
+        private val commonEnv: Dotenv = dotenv{
+            directory =
+        }
+        fun getEnvByKey(key: String): String? = dotenv[key.uppercase()]
 
         init {
 //            dotenv.entries().forEach { println("${it.key} : ${it.value}") }
