@@ -126,11 +126,11 @@ class PlayerManager {
         log.info("trackHash - tracks.size : ${tracks?.size}")
 
         val musicManager = getMusicManager(guild).scheduler
-        musicManager.nextTrack()
-        return if (tracks == null || tracks.size == 1) { // 1개 남았을 때도 스킵되면 없으므로 종료되어야 함.
+        return if (tracks == null || tracks.isEmpty()) { // 1개 남았을 때도 스킵되면 없으므로 종료되어야 함.
             stop(channel)
             false
         } else {
+            musicManager.nextTrack()
             trackHash[guild.idLong] = tracks.drop(1)
             println("tracks.size : ${trackHash[guild.idLong]?.size}")
             sendMessage(channel)

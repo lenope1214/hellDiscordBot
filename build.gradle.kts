@@ -1,7 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.8.10"
+    val kotlinVersion: String by System.getProperties() // 1.8.10
+
+    kotlin("jvm") version kotlinVersion
     id("java")
 //    application
 }
@@ -21,7 +23,12 @@ repositories {
 }
 
 dependencies {
-    api("net.dv8tion:JDA:5.0.0-beta.4")
+    val kotlinVersion = "1.8.10"
+    val junitVersion = "4.13.2"
+    val jdaVersion = "5.0.0-beta.4"
+    val dotenvVersion = "6.4.1"
+
+    api("net.dv8tion:JDA:${jdaVersion}")
 
     // JDA KTX https://github.com/MinnDevelopment/jda-ktx/tags 버전확인
     api("com.github.minndevelopment:jda-ktx:0.10.0-beta.1")
@@ -33,11 +40,15 @@ dependencies {
     api("com.sedmelluq:lavaplayer:1.3.77")
 
     // .env 사용을 위해
-    api("io.github.cdimascio:java-dotenv:5.2.2")
+    implementation("io.github.cdimascio:dotenv-kotlin:${dotenvVersion}")
 
     // kotlin
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     api(kotlin("stdlib-jdk8"))
+
+    // test
+    testApi("junit:junit:${junitVersion}")
+    testApi("org.jetbrains.kotlin:kotlin-test-junit:${kotlinVersion}")
 }
 
 tasks.withType<KotlinCompile> {

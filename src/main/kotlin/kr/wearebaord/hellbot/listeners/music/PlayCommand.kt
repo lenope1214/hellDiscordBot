@@ -22,12 +22,14 @@ object PlayCommand: CommandInterface {
     override fun onAction(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
         try{
+            isValidTextChannel(event.channel)
             isValidContentRaw(raw, commands)
         }catch (e:IllegalArgumentException){
+            log.error("play command error message: ${e.message}, raw : ${raw}" )
             return
         }
-        val content = parseContent(raw)
         log.info("play command by ${event.member!!.effectiveName}")
+        val content = parseContent(raw)
 
         val channel = event.channel
         val member = event.member
