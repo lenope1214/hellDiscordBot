@@ -46,6 +46,7 @@ class Config {
         init {
 //            dotenv.entries().forEach { println("${it.key} : ${it.value}") }
             // 만약 requiredEnvironments에 해당하는 환경변수가 dotenv에 존재하지 않다면 log.error를 뱉고 프로그램을 종료한다.
+            log.info("PROFILE: $PROFILE")
             when(PROFILE!!){
                 EnvTypes.DEV -> {
                     if (devEnv.entries().none { requiredEnvironments.contains(it.key) }) {
