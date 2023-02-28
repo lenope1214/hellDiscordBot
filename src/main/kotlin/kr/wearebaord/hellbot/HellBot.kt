@@ -19,7 +19,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.system.exitProcess
 
-var PROFILE: EnvTypes? = null
+var PROFILE: EnvTypes = EnvTypes.PROD
 var JDA: net.dv8tion.jda.api.JDA? = null
 var BOT_VERSION: String = ""
 var TOKEN: String = ""
@@ -116,7 +116,8 @@ suspend fun main(vararg args: String) {
     println("SHOW_BUTTONS = ${SHOW_BUTTONS}")
 }
 
-fun initEnvironment() {
+fun initEnvironment(profile: EnvTypes) {
+    Config.onProfile(profile)
     BOT_VERSION = Config.getEnvByKey("bot_version") ?: LocalDateTime.now()
         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         .toString()
