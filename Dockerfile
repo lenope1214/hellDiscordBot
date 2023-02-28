@@ -12,11 +12,15 @@ WORKDIR /home/hellbot
 
 # Copy the Java application into the container
 ARG JAR_FILE=build/libs/hellbot.jar
-ARG ENV_FILE=.env
+ARG COMMON_ENV_FILE=common.env
+ARG DEV_ENV_FILE=dev.env
+ARG PROD_ENV_FILE=prod.env
 
 # Add the application's jar to the container
 ADD ${JAR_FILE} hellbot.jar
-ADD ${ENV_FILE} .env
+ADD ${COMMON_ENV_FILE} .env
+ADD ${DEV_ENV_FILE} dev.env
+ADD ${PROD_ENV_FILE} prod.env
 # Set the entry point to the Java executable that runs the application
 ENTRYPOINT ["java", "-jar", "hellbot.jar"]
 
