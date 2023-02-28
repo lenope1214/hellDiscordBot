@@ -18,7 +18,7 @@ ARG PROD_ENV_FILE=prod.env
 
 # Add the application's jar to the container
 ADD ${JAR_FILE} hellbot.jar
-ADD ${COMMON_ENV_FILE} .env
+ADD ${COMMON_ENV_FILE} common.env
 ADD ${DEV_ENV_FILE} dev.env
 ADD ${PROD_ENV_FILE} prod.env
 # Set the entry point to the Java executable that runs the application
