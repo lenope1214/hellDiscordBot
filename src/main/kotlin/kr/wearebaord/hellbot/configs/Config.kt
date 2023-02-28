@@ -10,7 +10,7 @@ import kotlin.system.exitProcess
 class Config {
 
     companion object {
-        private val envDirectory = "src/main/kotlin/kr/wearebaord/hellbot/configs"
+        private const val envDirectory = "."
         private val requiredEnvironments: List<String> = listOf(
             "TOKEN",
             "BOT_ID",
