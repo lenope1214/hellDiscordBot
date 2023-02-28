@@ -23,10 +23,10 @@ repositories {
 }
 
 dependencies {
-    val kotlinVersion = System.getProperties() // 1.8.10
-    val junitVersion = System.getProperties() // 4.13.2
-    val jdaVersion = System.getProperties() // 5.0.0-beta.4
-    val dotenvVersion = System.getProperties() // 6.4.1
+    val kotlinVersion = "1.8.10"
+    val junitVersion = "4.13.2"
+    val jdaVersion = "5.0.0-beta.4"
+    val dotenvVersion = "6.4.1"
 
     api("net.dv8tion:JDA:${jdaVersion}")
 

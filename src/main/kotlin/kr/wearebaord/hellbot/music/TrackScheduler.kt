@@ -65,7 +65,7 @@ class TrackScheduler(
     fun nextTrack() {
         // noInterrupt() is a method on AudioPlayer which is used to make sure the current track finishes playing
         // 만약 다음 노래가 없다면 종료
-        log.info("nextTrack - queue size = ${queue.size}")
+        log.info("nextTrack - queue size = ${queue.size}, isRepeat: ${isRepeat()}, lastTrack: $lastTrack")
 
         if(isRepeat() && lastTrack != null){
             // 만약 repeat가 true면 다시 큐에 추가

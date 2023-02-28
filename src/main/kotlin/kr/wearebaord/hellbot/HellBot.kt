@@ -1,6 +1,7 @@
 package kr.wearebaord.hellbot
 
 import kr.wearebaord.hellbot.configs.Config
+import kr.wearebaord.hellbot.configs.EnvTypes
 import kr.wearebaord.hellbot.listeners.DefaultListener
 import kr.wearebaord.hellbot.listeners.MessageListener
 import kr.wearebaord.hellbot.listeners.MusicListener
@@ -18,21 +19,44 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.system.exitProcess
 
+var PROFILE: EnvTypes? = null
 var JDA: net.dv8tion.jda.api.JDA? = null
-val BOT_VERSION: String = Config.getEnvByKey("bot_version") ?: LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toString()
-val TOKEN: String = Config.getEnvByKey("token")!!
-val BOT_ID: String = Config.getEnvByKey("bot_id")!!
-val TEXT_CHANNEL_NAME: String = Config.getEnvByKey("text_channel_name")?.let { it } ?: "헬파티봇"
-val PREFIX: String = Config.getEnvByKey("prefix")!!
-val OWNER_ID: String = Config.getEnvByKey("owner_id") ?: "0"
-val VOLUME: Int = (Config.getEnvByKey("volume") ?: "10").toInt()
-val SHOW_BUTTONS : Boolean = (Config.getEnvByKey("show_buttons") ?: "true").toBoolean()
+var BOT_VERSION: String = ""
+var TOKEN: String = ""
+var BOT_ID: String = ""
+var TEXT_CHANNEL_NAME: String = ""
+var PREFIX: String = ""
+var OWNER_ID: String = ""
+var VOLUME: Int = 50
+var SHOW_BUTTONS: Boolean = false
 
 fun makeMessage(event: SlashCommandInteractionEvent, message: String) {
     event.reply(message).setEphemeral(false).queue()
 }
 
-suspend fun main() {
+suspend fun main(vararg args: String) {
+    // 프로필 설정
+    args.forEach {
+        println(it)
+    }
+    if (args.isNotEmpty()) {
+        PROFILE = when (args[0].uppercase(locale = java.util.Locale.getDefault())) {
+            "DEV" -> {
+                EnvTypes.DEV
+            }
+            "PROD" -> {
+                EnvTypes.PROD
+            }
+            else -> {
+                EnvTypes.PROD
+            }
+        }
+    }
+
+    // 환경 설정, prod, dev에 맞게 설정
+    initEnvironment()
+
+
     val jdaBuilder = JDABuilder.createDefault(TOKEN)
     JDA = configureMemoryUsage(jdaBuilder)
         .setActivity(
@@ -81,8 +105,8 @@ suspend fun main() {
     // 채팅 채널 이름이 "헬파티봇" 인 채널은 5초마다 메세지를 전부 삭제한다.
     // 5초마다 메세지를 삭제하는 이유는, 채팅이 쌓이는 것을 방지하기 위함이다.
 
-
     // logging application id
+    println("PROFILE = ${PROFILE}")
     println("TOKEN = ${TOKEN}")
     println("PREFIX = ${PREFIX}")
     println("OWNER_ID = ${OWNER_ID}")
@@ -90,6 +114,19 @@ suspend fun main() {
     println("Application ID: ${JDA!!.selfUser.id}")
     println("VOLUME = ${VOLUME}")
     println("SHOW_BUTTONS = ${SHOW_BUTTONS}")
+}
+
+fun initEnvironment() {
+    BOT_VERSION = Config.getEnvByKey("bot_version") ?: LocalDateTime.now()
+        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        .toString()
+    TOKEN = Config.getEnvByKey("token")!!
+    BOT_ID = Config.getEnvByKey("bot_id")!!
+    TEXT_CHANNEL_NAME = Config.getEnvByKey("text_channel_name")?.let { it } ?: "헬파티봇"
+    PREFIX = Config.getEnvByKey("prefix")!!
+    OWNER_ID = Config.getEnvByKey("owner_id") ?: "0"
+    VOLUME = (Config.getEnvByKey("volume") ?: "10").toInt()
+    SHOW_BUTTONS = (Config.getEnvByKey("show_buttons") ?: "true").toBoolean()
 }
 
 fun configureMemoryUsage(builder: JDABuilder): JDABuilder {

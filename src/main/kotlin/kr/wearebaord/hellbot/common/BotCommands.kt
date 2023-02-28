@@ -75,6 +75,7 @@ fun leaveBot(guild: Guild, channel: TextChannel?) {
 
 // 올바른 PREFIX로 시작하는지 확인하는 함수
 fun String.isCorrectPrefix(): Boolean {
+    log.info("isCorrectPrefix() : $this, $PREFIX")
     return this.startsWith(PREFIX, ignoreCase = true)
 }
 
@@ -84,6 +85,12 @@ fun doNotProcessMessage(command: String, commands: List<String>): Boolean {
         throw IllegalArgumentException("잘못된 명령어입니다.")
     }
     return true
+}
+
+fun isValidTextChannel(channel: MessageChannel){
+    if(channel.name != TEXT_CHANNEL_NAME){
+        throw IllegalArgumentException("잘못된 채널입니다.")
+    }
 }
 
 fun isValidContentRaw(raw: String, commands: List<String>): String {
@@ -107,6 +114,7 @@ fun isValidContentRaw(raw: String, commands: List<String>): String {
 }
 
 fun String.parseCommand(): String {
+    if(this.isEmpty() || this.length < PREFIX.length) return ""
     return this.substring(PREFIX.length).split(" ")[0]
 }
 
