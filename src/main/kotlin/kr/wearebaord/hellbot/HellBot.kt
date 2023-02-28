@@ -54,7 +54,7 @@ suspend fun main(vararg args: String) {
     }
 
     // 환경 설정, prod, dev에 맞게 설정
-    initEnvironment()
+    initEnvironment(PROFILE)
 
 
     val jdaBuilder = JDABuilder.createDefault(TOKEN)
