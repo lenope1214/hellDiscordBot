@@ -5,6 +5,7 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason.*
 import kr.wearebaord.hellbot.VOLUME
 import kr.wearebaord.hellbot.music.overrides.AudioPlayerOverride
 import net.dv8tion.jda.api.EmbedBuilder
@@ -147,20 +148,20 @@ class TrackScheduler(
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack?, endReason: AudioTrackEndReason) {
         // logging endReason
         log.info("track: ${track}, onTrackEnd: $endReason")
-        if (endReason == AudioTrackEndReason.REPLACED) {
-            log.info("Audio is REPLACED")
-            return
-        } else if (endReason == AudioTrackEndReason.STOPPED) {
-            log.info("Audio is STOPPED")
-            return
-        } else if (endReason == AudioTrackEndReason.FINISHED ||
-            endReason == AudioTrackEndReason.LOAD_FAILED
-        ) {
-            if (track != null) {
-                val channel = track.userData as TextChannel
-                PlayerManager.INSTANCE.next(channel)
+        when (endReason) {
+            REPLACED -> {
+                return
             }
-            return
+            STOPPED, CLEANUP -> {
+                return
+            }
+            FINISHED, LOAD_FAILED -> {
+                if (track != null) {
+                    val channel = track.userData as TextChannel
+                    PlayerManager.INSTANCE.next(channel)
+                }
+                return
+            }
         }
 
 

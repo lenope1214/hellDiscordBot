@@ -131,8 +131,14 @@ class PlayerManager {
             false
         } else {
             musicManager.nextTrack()
+            
+            // 큐의 맨 처음 트랙정보 제거
             trackHash[guild.idLong] = tracks!!.drop(1).toMutableList()
-            println("tracks.size : ${trackHash[guild.idLong]?.size}")
+//            println("tracks.size : ${trackHash[guild.idLong]?.size}")
+            trackHash[guild.idLong]?.let {
+                //logging
+                log.info("nextTrackName - result trackNames: ${it}")
+            }
             sendMessage(channel)
             true
         }
