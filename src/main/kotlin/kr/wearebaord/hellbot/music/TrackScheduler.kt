@@ -6,6 +6,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import kr.wearebaord.hellbot.VOLUME
+import kr.wearebaord.hellbot.music.overrides.AudioPlayerOverride
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
@@ -15,17 +16,26 @@ import java.util.concurrent.LinkedBlockingQueue
 
 
 class TrackScheduler(
-    val player: AudioPlayer
+    val player: AudioPlayer,
 ) : AudioEventAdapter() {
     private var pause: Boolean = false
     private var repeat: Boolean = false
-    private var lastTrack: AudioTrack?=null
+    private var lastTrack: AudioTrack? = null
     val queue: BlockingQueue<AudioTrack> = LinkedBlockingQueue()
 
     private val log = LoggerFactory.getLogger(TrackScheduler::class.java)
 
-    init{
+    init {
         player.volume = VOLUME!!
+
+        // Thread 하나 생성해서
+        // music에 사용되는 매개변수를 1분 단위로 로깅
+//        Thread {
+//            while (true) {
+//                Thread.sleep(3000)
+//                log.info("player: ${player.toString()}, pause: $pause, repeat: $repeat, lastTrack: $lastTrack, queue: $queue")
+//            }
+//        }.start()
     }
 
     fun isPause(): Boolean {
@@ -43,6 +53,7 @@ class TrackScheduler(
     fun isRepeat(): Boolean {
         return repeat
     }
+
     fun doRepeat() {
         repeat = true
     }
@@ -52,11 +63,19 @@ class TrackScheduler(
     }
 
     fun queue(track: AudioTrack) {
-        // 한글로 주석 작성
-        // 만약 플레이어가 현재 재생중이지 않다면 바로 재생, 큐에 추가
-        if (!player.startTrack(track, true)) {
-            queue.offer(track)
+        // startTrack이 true일 때는 현재 재생하는 노래가 없을때 바로 재생시켰음을 의미
+
+        // false일 때는 재생시키지 않았음을 의미.
+
+        val startTrack = player.startTrack(track, true)
+        log.info("queue - startTrack: $startTrack")
+        if (startTrack) {
+            // 만약 첫 곡(플레이 중이 아닌 상태)이라면 마지막 곡 정보를 업데이트
             lastTrack = track
+        }
+        if (!startTrack) {
+            // 현재 플레이 중인 노래가 있다면 queue에 추가.
+            queue.offer(track)
         }
 
 
@@ -67,11 +86,10 @@ class TrackScheduler(
         // 만약 다음 노래가 없다면 종료
         log.info("nextTrack - queue size = ${queue.size}, isRepeat: ${isRepeat()}, lastTrack: $lastTrack")
 
-        if(isRepeat() && lastTrack != null){
+        if (isRepeat() && lastTrack != null) {
             // 만약 repeat가 true면 다시 큐에 추가
             queue.add(lastTrack)
-        }
-        else if (queue.isEmpty()) {
+        } else if (queue.isEmpty()) {
             player.stopTrack()
         }
 
@@ -93,7 +111,7 @@ class TrackScheduler(
                 for (i in 0 until index - 1) {
                     tempQueue.add(queue.elementAt(i).makeClone())
                 }
-            }else{
+            } else {
                 val track = queue.elementAt(index - 1)
                 queue.remove(track)
                 // 다음 트랙으로 이동
@@ -129,16 +147,15 @@ class TrackScheduler(
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack?, endReason: AudioTrackEndReason) {
         // logging endReason
         log.info("track: ${track}, onTrackEnd: $endReason")
-        if (endReason == AudioTrackEndReason.REPLACED){
+        if (endReason == AudioTrackEndReason.REPLACED) {
             log.info("Audio is REPLACED")
             return
-        }
-        else if(endReason == AudioTrackEndReason.STOPPED){
+        } else if (endReason == AudioTrackEndReason.STOPPED) {
             log.info("Audio is STOPPED")
             return
-        }
-        else if (endReason == AudioTrackEndReason.FINISHED ||
-            endReason == AudioTrackEndReason.LOAD_FAILED) {
+        } else if (endReason == AudioTrackEndReason.FINISHED ||
+            endReason == AudioTrackEndReason.LOAD_FAILED
+        ) {
             if (track != null) {
                 val channel = track.userData as TextChannel
                 PlayerManager.INSTANCE.next(channel)
@@ -162,9 +179,10 @@ class TrackScheduler(
     override fun onTrackStuck(player: AudioPlayer, track: AudioTrack, thresholdMs: Long) {
         super.onTrackStuck(player, track, thresholdMs)
         log.info("onTrackStuck: $thresholdMs")
+        nextTrack()
     }
 
-    fun prevTrack():Boolean {
+    fun prevTrack(): Boolean {
         log.info("prevTrack - queue size = ${queue.size}")
         if (lastTrack == null) {
             player.stopTrack()

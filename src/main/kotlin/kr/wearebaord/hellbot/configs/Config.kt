@@ -44,20 +44,9 @@ class Config {
         }
 
         fun onProfile(profile: EnvTypes) {
-            profileEnv = when(profile){
-                EnvTypes.DEV -> {
-                    devEnv
-                }
-                EnvTypes.PROD -> {
-                    prodEnv
-                }
-            }
-        }
-
-        init {
-//            dotenv.entries().forEach { println("${it.key} : ${it.value}") }
             // 만약 requiredEnvironments에 해당하는 환경변수가 dotenv에 존재하지 않다면 log.error를 뱉고 프로그램을 종료한다.
-            when(PROFILE!!){
+            log.info("PROFILE: $profile")
+            when(profile){
                 EnvTypes.DEV -> {
                     if (devEnv.entries().none { requiredEnvironments.contains(it.key) }) {
                         log.error("필수 환경변수가 세팅되지 않았습니다. 필수 환경변수: ${requiredEnvironments.joinToString(", ")}")
@@ -73,6 +62,14 @@ class Config {
                     profileEnv = prodEnv
                 }
             }
+//            profileEnv = when(profile){
+//                EnvTypes.DEV -> {
+//                    devEnv
+//                }
+//                EnvTypes.PROD -> {
+//                    prodEnv
+//                }
+//            }
         }
     }
 }
