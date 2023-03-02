@@ -20,7 +20,7 @@ class PlayerManager {
     private val log = LoggerFactory.getLogger(PlayerManager::class.java)
     private val musicManagers: HashMap<Long, GuildMusicManager> = HashMap()
     private val audioPlayerManager: AudioPlayerManager = DefaultAudioPlayerManager()
-    private val trackHash: HashMap<Long, MutableList<AudioTrack>> = HashMap()
+    private val trackHash: HashMap<Long, List<AudioTrack>> = HashMap()
 
     init {
         AudioSourceManagers.registerRemoteSources(this.audioPlayerManager)
@@ -40,7 +40,6 @@ class PlayerManager {
         val musicManager = this.getMusicManager(channel.guild).scheduler
         this.audioPlayerManager.loadItemOrdered(musicManager, trackUrl, object : AudioLoadResultHandler {
             override fun trackLoaded(track: AudioTrack) {
-                log.info("trackLoaded: ${track.info.title} (${track.info.uri})")
                 try {
                     if (track.info.title == null) {
                         throw MusicTitleIsNullException()
@@ -107,13 +106,14 @@ class PlayerManager {
 
     fun plus(channel: TextChannel, track: AudioTrack) {
         val guild = channel.guild
-        if (trackHash[guild.idLong] == null) {
-            trackHash[guild.idLong] = mutableListOf(track)
+        val trackNames = trackHash[guild.idLong]
+        if (trackNames == null) {
+            trackHash[guild.idLong] = listOf(track)
         } else {
-            trackHash[guild.idLong]!!.add(track)
+            trackHash[guild.idLong] = trackNames.plus(track)
         }
         sendMessage(channel)
-        log.info("addTrackName - result trackNames: ${trackHash[guild.idLong]}")
+        log.info("addTrackName - result trackNames: $trackNames")
     }
 
     /**
@@ -126,12 +126,12 @@ class PlayerManager {
         log.info("trackHash - tracks.size : ${tracks?.size}")
 
         val musicManager = getMusicManager(guild).scheduler
-        return if (!musicManager.isRepeat() && (tracks == null || tracks.isEmpty())) { // 1개 남았을 때도 스킵되면 없으므로 종료되어야 함.
+        return if (tracks == null || tracks.isEmpty()) { // 1개 남았을 때도 스킵되면 없으므로 종료되어야 함.
             stop(channel)
             false
         } else {
             musicManager.nextTrack()
-            trackHash[guild.idLong] = tracks!!.drop(1).toMutableList()
+            trackHash[guild.idLong] = tracks.drop(1)
             println("tracks.size : ${trackHash[guild.idLong]?.size}")
             sendMessage(channel)
             true
@@ -148,7 +148,7 @@ class PlayerManager {
         if (tracks == null || tracks.size == 1 || tracks.size <= index) {
             stop(channel)
         } else {
-            trackHash[guild.idLong] = tracks.drop(index).toMutableList()
+            trackHash[guild.idLong] = tracks.drop(index)
             println("tracks.size : ${trackHash[guild.idLong]?.size}")
             sendMessage(channel)
         }
@@ -160,7 +160,7 @@ class PlayerManager {
     ) {
         log.info("resetTrack")
         val guild = channel.guild
-        trackHash[guild.idLong] = mutableListOf()
+        trackHash[guild.idLong] = listOf()
         leftChannel(guild)
         channel.sendEmbed(
             title = "재생이 종료되었습니다.",

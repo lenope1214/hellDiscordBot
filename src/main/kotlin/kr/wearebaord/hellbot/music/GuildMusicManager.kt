@@ -12,7 +12,7 @@ class GuildMusicManager(
 
     init {
         this.audioPlayer = manager.createPlayer()
-        this.scheduler = TrackScheduler(this.audioPlayer as AudioPlayer)
+        this.scheduler = TrackScheduler(this.audioPlayer)
         this.audioPlayer.addListener(this.scheduler)
         this.sendHandler = AudioPlayerSendHandler(this.audioPlayer)
     }

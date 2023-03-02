@@ -75,6 +75,7 @@ fun leaveBot(guild: Guild, channel: TextChannel?) {
 
 // 올바른 PREFIX로 시작하는지 확인하는 함수
 fun String.isCorrectPrefix(): Boolean {
+    log.info("isCorrectPrefix() : $this, $PREFIX")
     return this.startsWith(PREFIX, ignoreCase = true)
 }
 
@@ -139,7 +140,7 @@ fun TextChannel.deleteAllMessages() {
         if (messages.isEmpty()) return
         if (messages.size == 1) {
             val channelMessages = this.iterableHistory
-                .takeAsync(1)
+                .takeAsync(1) // Collect 1000 messages
                 .thenApply {
                     it.toList()
                 }
