@@ -47,9 +47,12 @@ class PlayerManager {
                     }
                     track.userData = channel
 
-                    musicManager.queue(track)
-
-                    plus(channel, track)
+                    val isAddedQueue = musicManager.addQueue(track)
+                    if(isAddedQueue) {
+                        plus(channel, track)
+                    } else {
+                        channel.sendEmbed("노래 정보를 불러오는데에 실패했습니다. 다시 시도해주세요.")
+                    }
                 } catch (e: Exception) {
                     log.error("trackLoaded error: ${e.message}")
                     e.printStackTrace()
@@ -141,6 +144,8 @@ class PlayerManager {
                     if(it.isNotEmpty()){
                         val firstTrack = it[0]
                         it.add(firstTrack)
+                        // set last track
+                        musicManager.updateLastTrack(firstTrack)
                     }
                 }
                 log.info("==================================================")

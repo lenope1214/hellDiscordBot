@@ -130,7 +130,7 @@ fun parseContent(raw: String): String {
 fun TextChannel.deleteAllMessages() {
     try {
         val messages = this.iterableHistory
-            .takeAsync(1000) // Collect 1000 messages
+            .takeAsync(10) // Collect 1000 messages
             .thenApply {
                 it.toList()
             }.get()
@@ -138,17 +138,12 @@ fun TextChannel.deleteAllMessages() {
         log.info("deleteAllMessages - messages.size = ${messages.size}")
         if (messages.isEmpty()) return
         if (messages.size == 1) {
-            val channelMessages = this.iterableHistory
-                .takeAsync(1)
-                .thenApply {
-                    it.toList()
-                }
-            if (channelMessages.get().isEmpty()) return
-            channelMessages.get()[0]
-                .delete().queue()
+            messages[0].delete().queue()
         } else {
-            messages.chunked(100).forEach {
-                this.deleteMessages(it).queue()
+            messages.chunked(10).forEach {
+                this.deleteMessages(it).queue().let {
+                    log.info("${this.name} 채널의 메세지 삭제 성공 - [ ${it} ]")
+                }
             }
         }
 
