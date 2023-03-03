@@ -7,9 +7,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason.*
 import kr.wearebaord.hellbot.VOLUME
-import kr.wearebaord.hellbot.music.overrides.AudioPlayerOverride
-import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import org.slf4j.LoggerFactory
 import java.util.concurrent.BlockingQueue
@@ -59,27 +56,36 @@ class TrackScheduler(
         repeat = true
     }
 
+    fun updateLastTrack(track: AudioTrack) {
+        lastTrack = track
+    }
+
     fun doNotRepeat() {
         repeat = false
     }
 
-    fun queue(track: AudioTrack) {
-        // startTrack이 true일 때는 현재 재생하는 노래가 없을때 바로 재생시켰음을 의미
+    fun addQueue(track: AudioTrack) : Boolean{
+        try {
+            // startTrack이 true일 때는 현재 재생하는 노래가 없을때 바로 재생시켰음을 의미
 
-        // false일 때는 재생시키지 않았음을 의미.
+            // false일 때는 재생시키지 않았음을 의미.
 
-        val startTrack = player.startTrack(track, true)
-        log.info("queue - startTrack: $startTrack")
-        if (startTrack) {
-            // 만약 첫 곡(플레이 중이 아닌 상태)이라면 마지막 곡 정보를 업데이트
-            lastTrack = track
+            val startTrack = player.startTrack(track, true)
+            log.info("queue - startTrack: $startTrack")
+            if (startTrack) {
+                // 만약 첫 곡(플레이 중이 아닌 상태)이라면 마지막 곡 정보를 업데이트
+                lastTrack = track
+            }
+            if (!startTrack) {
+                // 현재 플레이 중인 노래가 있다면 queue에 추가.
+                queue.offer(track)
+            }
+
+            return true
+        } catch (e: Exception) {
+            log.error("queue - error: ${e.message}")
+            return false
         }
-        if (!startTrack) {
-            // 현재 플레이 중인 노래가 있다면 queue에 추가.
-            queue.offer(track)
-        }
-
-
     }
 
     fun nextTrack() {
@@ -96,7 +102,9 @@ class TrackScheduler(
             player.stopTrack()
         }
 
-        player.startTrack(queue.poll().makeClone(), false)
+        val playTrack = queue.poll()
+        log.info("nextTrack - playTrack: ${playTrack?.info?.title}")
+        player.startTrack(playTrack?.makeClone(), false)
     }
 
     fun jumpTrack(index: Int, repeat: Boolean = false) {
@@ -166,8 +174,6 @@ class TrackScheduler(
                 return
             }
         }
-
-
         // endReason == FINISHED: A track finished or died by an exception (mayStartNext = true).
         // endReason == LOAD_FAILED: Loading of a track failed (mayStartNext = true).
         // endReason == STOPPED: The player was stopped.
