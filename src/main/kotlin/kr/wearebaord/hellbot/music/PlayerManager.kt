@@ -92,7 +92,7 @@ class PlayerManager {
         val pause = musicManager.isPause()
         val repeat = musicManager.isRepeat()
 
-
+        trackHash.forEach { log.info("trackHash - key: ${it.key}, value: ${it.value}") }
         channel.sendYoutubeEmbed(
             url = firstTrack.info.uri,
             title = firstTrack.info.title,
@@ -113,7 +113,8 @@ class PlayerManager {
             trackHash[guild.idLong]!!.add(track)
         }
         sendMessage(channel)
-        log.info("addTrackName - result trackNames: ${trackHash[guild.idLong]}")
+//        log.info("addTrackName - result trackNames: }")
+        trackHash[guild.idLong]?.forEach { log.info("trackHash - track: ${it.info.title}") }
     }
 
     /**
@@ -131,8 +132,29 @@ class PlayerManager {
             false
         } else {
             musicManager.nextTrack()
+
+            // 반복재생 중이라면 맨 앞 곡을 맨 뒤에 추가
+            if(musicManager.isRepeat()){
+                log.info("======= 반복 중이므로 맨 앞 곡을 맨 뒤에 추가 =======")
+                tracks?.let {
+                    log.info("track info : ${it[0].info.title}")
+                    if(it.isNotEmpty()){
+                        val firstTrack = it[0]
+                        it.add(firstTrack)
+                    }
+                }
+                log.info("==================================================")
+            }
+
+            // 큐의 맨 처음 트랙정보 제거
             trackHash[guild.idLong] = tracks!!.drop(1).toMutableList()
-            println("tracks.size : ${trackHash[guild.idLong]?.size}")
+
+
+//            println("tracks.size : ${trackHash[guild.idLong]?.size}")
+            trackHash[guild.idLong]?.let {
+                //logging
+                log.info("nextTrackName - result trackNames: ${it}")
+            }
             sendMessage(channel)
             true
         }
