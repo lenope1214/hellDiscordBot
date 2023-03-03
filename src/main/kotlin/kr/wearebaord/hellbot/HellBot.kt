@@ -91,7 +91,7 @@ suspend fun main(vararg args: String) {
         )
         .addEventListeners(
             DefaultListener,
-            MessageListener,
+//            MessageListener,
             MusicListener,
         )
         .build()

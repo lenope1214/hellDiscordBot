@@ -112,9 +112,7 @@ object MusicListener : ListenerAdapter() {
             "repeatButton" -> {
                 PlayCommand.log.info("반복버튼 눌림")
                 val beforeEmoji = event.button.emoji
-                PlayCommand.log.info("beforeEmoji: $beforeEmoji")
                 val isRepeat = beforeEmoji == EmojiValue.INFINITY.fromUnicode()
-                PlayCommand.log.info("isRepeat: $isRepeat")
                 try {
                     // 기존 버튼 수정
                     event.editButton(

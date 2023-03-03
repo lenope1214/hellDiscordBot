@@ -85,16 +85,18 @@ class TrackScheduler(
     fun nextTrack() {
         // noInterrupt() is a method on AudioPlayer which is used to make sure the current track finishes playing
         // 만약 다음 노래가 없다면 종료
-        log.info("nextTrack - queue size = ${queue.size}, isRepeat: ${isRepeat()}, lastTrack: $lastTrack")
+        log.info("nextTrack - queue size = ${queue.size}, isRepeat: ${isRepeat()}, lastTrack: ${lastTrack?.info?.title}")
 
         if (isRepeat() && lastTrack != null) {
-            // 만약 repeat가 true면 다시 큐에 추가
+            // 만약 repeat가 true이고 마지막 곡이 있다면 마지막 곡을 큐에 다시 추가
             queue.add(lastTrack)
+
         } else if (queue.isEmpty()) {
+            // 만약 반복재생이 아니고 큐가 비어있다면 종료
             player.stopTrack()
         }
 
-        player.startTrack(queue.poll()?.makeClone(), false)
+        player.startTrack(queue.poll().makeClone(), false)
     }
 
     fun jumpTrack(index: Int, repeat: Boolean = false) {
@@ -155,6 +157,7 @@ class TrackScheduler(
             STOPPED, CLEANUP -> {
                 return
             }
+            // 정상 종료, 트랙 불러오기 실패 시 다음 트랙 재생
             FINISHED, LOAD_FAILED -> {
                 if (track != null) {
                     val channel = track.userData as TextChannel
