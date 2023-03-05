@@ -1,17 +1,10 @@
 package kr.wearebaord.hellbot.listeners.music
 
-import kr.wearebaord.hellbot.BOT_VERSION
-import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
 import kr.wearebaord.hellbot.common.*
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 import kr.wearebaord.hellbot.music.PlayerManager
-import kr.wearebaord.hellbot.music.enums.EmojiValue
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
-import net.dv8tion.jda.api.events.guild.GuildReadyEvent
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
-import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent
 
 object PlayCommand: CommandInterface {
     val log = LoggerFactory.getLogger(PlayCommand::class.java)
@@ -52,7 +45,7 @@ object PlayCommand: CommandInterface {
         var url = url
 
         log.info("url: $url")
-        if (!url.isYoutubeUrl()) {
+        if (!url.isHttpUrl()) {
             log.info("url is not url, ytsearch")
             url = "ytsearch:$url"
         }
