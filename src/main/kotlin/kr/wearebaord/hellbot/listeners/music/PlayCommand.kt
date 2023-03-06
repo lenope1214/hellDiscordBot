@@ -46,11 +46,12 @@ object PlayCommand: CommandInterface {
 
         log.info("url: $url")
         if (!url.isHttpUrl()) {
-            log.info("url is not url, ytsearch")
+            log.info("url is not HTTP, search by ytsearch")
             url = "ytsearch:$url"
         }
 
         try {
+            // 헬파티 봇이 음성 채널에 없다면 음성 채널에 참가시킨다.
             if (!selfVoiceState!!.inAudioChannel()) {
                 joinVoiceChannelBot(event.channel, event.member!!, event.guild!!)
             }

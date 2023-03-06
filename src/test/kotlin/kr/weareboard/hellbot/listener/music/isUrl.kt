@@ -9,6 +9,7 @@ fun main() {
     val url2 = "https://youtube.com/shorts/ihPtIR2gfvM?feature=share"
     val url3 = "https://www.youtube.com/watch?v=12345678901"
     val url4 = "https://youtu.be/emk4Yoredik"
+    val url5 = "https://youtu.be/NMA_isZYsYQ"
 //    println(isUrl(url))
 //    println(isUrl(url2))
 
@@ -20,6 +21,7 @@ fun main() {
         url2,
         url3,
         url4,
+        url5,
     ).forEach {
         println(isUrl3(it))
     }
