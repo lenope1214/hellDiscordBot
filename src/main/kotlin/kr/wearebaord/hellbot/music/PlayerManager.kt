@@ -66,15 +66,18 @@ class PlayerManager {
             }
 
             override fun noMatches() {
+                log.info("재생할 영상(노래)을 찾을 수 없습니다.: $trackUrl")
                 channel.sendMessage("No matches found for $trackUrl").queue()
             }
 
             /**
              * Called when loading an item failed with an exception.
-             * @param exception The exception that was thrown
+             * @param e The exception that was thrown
              */
-            override fun loadFailed(exception: FriendlyException?) {
-                channel.sendMessage("Could not play: $exception").queue()
+            override fun loadFailed(e: FriendlyException) {
+                e.printStackTrace()
+                log.error("loadFailed: ${e.message}")
+                channel.sendMessage("재생 불가능한 노래입니다.").queue()
             }
         })
     }
