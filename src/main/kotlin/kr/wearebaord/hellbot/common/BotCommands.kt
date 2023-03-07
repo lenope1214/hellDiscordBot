@@ -1,12 +1,13 @@
 package kr.wearebaord.hellbot.common
 
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import dev.minn.jda.ktx.interactions.components.SelectOption
 import dev.minn.jda.ktx.interactions.components.StringSelectMenu
 import dev.minn.jda.ktx.interactions.components.button
 import kr.wearebaord.hellbot.PREFIX
 import kr.wearebaord.hellbot.SHOW_BUTTONS
 import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
+import kr.wearebaord.hellbot.exception.InvalidTextChannel
+import kr.wearebaord.hellbot.music.PlayTrackInfo
 import kr.wearebaord.hellbot.music.enums.ComponentTypes
 import kr.wearebaord.hellbot.music.enums.EmojiValue
 import net.dv8tion.jda.api.EmbedBuilder
@@ -16,13 +17,11 @@ import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed.Field
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.components.ActionComponent
 import net.dv8tion.jda.api.interactions.components.ItemComponent
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.slf4j.LoggerFactory
 import java.awt.Color
-import java.util.concurrent.TimeUnit
 
 
 class BotCommands
@@ -88,7 +87,7 @@ fun doNotProcessMessage(command: String, commands: List<String>): Boolean {
 
 fun isValidTextChannel(channel: MessageChannel){
     if(channel.name != TEXT_CHANNEL_NAME){
-        throw IllegalArgumentException("잘못된 채널입니다.")
+        throw InvalidTextChannel()
     }
 }
 
@@ -156,16 +155,25 @@ fun TextChannel.deleteAllMessages() {
 fun TextChannel.sendYoutubeEmbed(
     url: String,
     title: String,
-    description: String = "이 노래를 재생합니다.",
+    description: String = "",
     author: String,
     duration: Long = 0,
     youtubeIdentity: String = "",
-    tracks: List<AudioTrack> = listOf(),
+    playTrackInfoList: List<PlayTrackInfo>,
     isPause: Boolean = false,
     isRepeat: Boolean = false,
 ) {
-    var fields = mutableListOf<Field>()
+    if(playTrackInfoList.isEmpty()) return
+    // 트랙 정보 리스트 출력
+    playTrackInfoList.forEach {
+        log.info("PlayTrackInfo : $it")
+    }
 
+    val tracks = playTrackInfoList.map { it.track }
+    var fields = mutableListOf<Field>()
+    val addedBy = playTrackInfoList.first().addedBy
+    val footerText = addedBy.roles.joinToString(" | ") { it.name }
+    val footerIconUrl = addedBy.effectiveAvatar.url
     fields.add(
         Field(
             "노래 길이",
@@ -239,24 +247,29 @@ fun TextChannel.sendYoutubeEmbed(
         )
     }
 
-
     sendEmbed(
-        title = "$title",
+        url = url,
+        title = title,
         description = description,
-        author = "YT 채널 :$author",
+        author = author,
         thumbnail = youtubeIdentity.isNotEmpty().let { "https://i.ytimg.com/vi/${youtubeIdentity}/hqdefault.jpg" },
         fields = fields,
         actionRowsMap = actionRowsMap,
+        footerText = footerText,
+        footerIconUrl = footerIconUrl,
     )
 }
 
 fun TextChannel.sendEmbed(
-    title: String,
+    url: String = "",
+    title: String = "",
     description: String = "이 노래를 재생합니다.",
     author: String = "",
     thumbnail: String? = null,
     fields: List<Field> = listOf(),
     actionRowsMap: Map<ComponentTypes, List<ItemComponent>> = mapOf(),
+    footerText : String? = null,
+    footerIconUrl: String? = null,
 ) {
     // 1. 채널의 기존 메세지 삭제
     this.deleteAllMessages()
@@ -269,12 +282,15 @@ fun TextChannel.sendEmbed(
     }
 
     log.info("thumbnail : $thumbnail")
+    log.info("footerText : $footerText")
+    log.info("footerIconUrl : $footerIconUrl")
     val messageEmbed = builder.setAuthor("HellBot")
-        .setTitle(title)
+        .setTitle(title, url)
         .setDescription(description)
         .setAuthor(author)
         .setThumbnail(thumbnail)
         .setColor(Color(0xFF7B96))
+        .setFooter(footerText, footerIconUrl)
         .build()
 
     val sendMessageEmbeds = this

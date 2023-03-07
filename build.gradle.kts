@@ -37,7 +37,8 @@ dependencies {
 
     // YOUTUBE MUSIC SUPPORT https://github.com/sedmelluq/lavaplayer
 
-    api("com.sedmelluq:lavaplayer:1.3.77")
+//    api("com.sedmelluq:lavaplayer:1.3.77")
+    api("com.github.walkyst:lavaplayer-fork:1.4.0") // lavaplayer - fork project
 
     // .env 사용을 위해
     implementation("io.github.cdimascio:dotenv-kotlin:${dotenvVersion}")

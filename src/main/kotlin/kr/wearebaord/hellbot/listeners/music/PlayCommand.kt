@@ -1,6 +1,7 @@
 package kr.wearebaord.hellbot.listeners.music
 
 import kr.wearebaord.hellbot.common.*
+import kr.wearebaord.hellbot.exception.InvalidTextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.slf4j.LoggerFactory
 import kr.wearebaord.hellbot.music.PlayerManager
@@ -9,39 +10,36 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 object PlayCommand: CommandInterface {
     val log = LoggerFactory.getLogger(PlayCommand::class.java)
 
-    val commands: List<String> = listOf("p", "play", "ㅔ", "ㅔㅣ묘", "재생", "노래")
-
-
     override fun onAction(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
         try{
             isValidTextChannel(event.channel)
-            isValidContentRaw(raw, commands)
-        }catch (e:IllegalArgumentException){
-            log.error("play command error message: ${e.message}, raw : ${raw}" )
+        }catch (e: InvalidTextChannel){
             return
         }
         log.info("play command by ${event.member!!.effectiveName}")
-        val content = parseContent(raw)
 
         val channel = event.channel
-        val member = event.member
+        val bot = event.guild.selfMember // bot infomation
+        val member = event.member // request user infomation
         val memberVoiceState = member!!.voiceState
+
+        if(member == bot){ return }
 
         if (!memberVoiceState!!.inAudioChannel()) {
             channel.sendMessage("음성채널에 들어가주세요.").queue()
             return
         }
 
-        play(event, content)
+        play(event, raw)
     }
 
 
     private fun play(event: MessageReceivedEvent, url: String) {
         val channel = event.channel
-        // bot infomation
-        val self = event.guild!!.selfMember
-        val selfVoiceState = self!!.voiceState
+
+        val bot = event.guild!!.selfMember // bot infomation
+        val selfVoiceState = bot!!.voiceState
         var url = url
 
         log.info("url: $url")
@@ -56,7 +54,7 @@ object PlayCommand: CommandInterface {
                 joinVoiceChannelBot(event.channel, event.member!!, event.guild!!)
             }
             PlayerManager.INSTANCE
-                .loadAndPlay(channel as TextChannel, url)
+                .loadAndPlay(channel as TextChannel, url, event.member!!)
         } catch (e: Exception) {
             e.printStackTrace()
             log.error("error: ${e.message}")
