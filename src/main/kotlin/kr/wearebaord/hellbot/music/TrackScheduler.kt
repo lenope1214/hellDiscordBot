@@ -56,7 +56,7 @@ class TrackScheduler(
         repeat = true
     }
 
-    fun updateLastTrack(track: AudioTrack) {
+    fun updateLastTrack(track: AudioTrack?) {
         lastTrack = track
     }
 

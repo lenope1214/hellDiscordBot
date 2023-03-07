@@ -16,8 +16,10 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
+import org.slf4j.LoggerFactory
 
 object MusicListener : ListenerAdapter() {
+    private val log = LoggerFactory.getLogger(MusicListener::class.java)
 
     override fun onGuildReady(event: GuildReadyEvent) {
         val guild = event.guild
@@ -30,35 +32,38 @@ object MusicListener : ListenerAdapter() {
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         val contentRaw = event.message.contentRaw
-        if(
+        if (
             contentRaw.isNullOrEmpty()
             && !contentRaw.contains(" ")
             && !contentRaw.isCorrectPrefix()
             && contentRaw.length < 3
-        )return
-        when(event.message.contentRaw.parseCommand()) {
-            in PlayCommand.commands -> {
-                PlayCommand.onAction(event)
-            }
+        ) return
+        when (event.message.contentRaw.parseCommand()) {
+//            in PlayCommand.commands
             in StopCommand.commands -> {
                 StopCommand.onAction(event)
             }
             in SkipCommand.commands -> {
                 SkipCommand.onAction(event)
             }
+            // stop skip 외에는 플레이어 커맨드로 처리
+            else -> {
+                PlayCommand.onAction(event)
+            }
+
         }
     }
 
     override fun onGenericSelectMenuInteraction(event: GenericSelectMenuInteractionEvent<*, *>) {
-        PlayCommand.log.info("onGenericSelectMenuInteraction - ${event.componentId}")
-        PlayCommand.log.info("getComponent : ${event.component}")
+        log.info("onGenericSelectMenuInteraction - ${event.componentId}")
+        log.info("getComponent : ${event.component}")
         when (event.componentId) {
             "trackBox" -> {
                 val values: List<Int> = event.values.map {
                     it as String
                     // 숫자 외 제거
                     it.replace("/[^0-9]/g", "")
-                    PlayCommand.log.info("value: ${it.toLong()}")
+                    log.info("value: ${it.toLong()}")
                     it.toInt()
                 }
 
@@ -110,7 +115,7 @@ object MusicListener : ListenerAdapter() {
                 PlayerManager.INSTANCE.prevTrack(event.channel as TextChannel)
             }
             "repeatButton" -> {
-                PlayCommand.log.info("반복버튼 눌림")
+                log.info("반복버튼 눌림")
                 val beforeEmoji = event.button.emoji
                 val isRepeat = beforeEmoji == EmojiValue.INFINITY.fromUnicode()
                 try {
@@ -123,9 +128,9 @@ object MusicListener : ListenerAdapter() {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                PlayCommand.log.info("process repeat")
+                log.info("process repeat")
                 PlayerManager.INSTANCE.repeat(event.channel as TextChannel)
-                PlayCommand.log.info("end process repeat")
+                log.info("end process repeat")
             }
         }
     }

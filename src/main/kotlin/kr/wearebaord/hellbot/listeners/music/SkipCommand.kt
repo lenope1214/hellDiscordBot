@@ -2,6 +2,7 @@ package kr.wearebaord.hellbot.listeners.music
 
 import kr.wearebaord.hellbot.common.isValidContentRaw
 import kr.wearebaord.hellbot.common.isValidTextChannel
+import kr.wearebaord.hellbot.exception.InvalidTextChannel
 import kr.wearebaord.hellbot.music.PlayerManager
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -17,9 +18,7 @@ object SkipCommand : CommandInterface{
         val raw: String = event.message.contentRaw
         try {
             isValidTextChannel(event.channel)
-            isValidContentRaw(raw, commands)
-        } catch (e: IllegalArgumentException) {
-            log.error("skip command error message: ${e.message}, raw : ${raw}" )
+        } catch (e: InvalidTextChannel) {
             return
         }
         log.info("skip command")
