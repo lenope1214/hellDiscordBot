@@ -137,7 +137,7 @@ class PlayerManager {
         log.info("trackHash - tracks.size : ${tracks?.size}")
 
         val musicManager = getMusicManager(guild).scheduler
-        return if (!musicManager.isRepeat() && (tracks == null || tracks.isEmpty())) { // 1개 남았을 때도 스킵되면 없으므로 종료되어야 함.
+        return if (!musicManager.isRepeat() && (tracks == null || tracks.size == 1)) {
             stop(channel)
             false
         } else {

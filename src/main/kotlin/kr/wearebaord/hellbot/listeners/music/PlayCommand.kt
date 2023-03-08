@@ -7,14 +7,14 @@ import org.slf4j.LoggerFactory
 import kr.wearebaord.hellbot.music.PlayerManager
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 
-object PlayCommand: CommandInterface {
+object PlayCommand : CommandInterface {
     val log = LoggerFactory.getLogger(PlayCommand::class.java)
 
     override fun onAction(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
-        try{
+        try {
             isValidTextChannel(event.channel)
-        }catch (e: InvalidTextChannel){
+        } catch (e: InvalidTextChannel) {
             return
         }
         log.info("play command by ${event.member!!.effectiveName}")
@@ -24,12 +24,12 @@ object PlayCommand: CommandInterface {
         val member = event.member // request user infomation
         val memberVoiceState = member!!.voiceState
 
-        if(member == bot){ return }
-
-        if (!memberVoiceState!!.inAudioChannel()) {
-            channel.sendMessage("음성채널에 들어가주세요.").queue()
+        if (member == bot) {
             return
         }
+
+        // 요청자가 음성 채널에 들어가있는가?
+        !isMemberEnteredChannel(memberVoiceState, channel)
 
         play(event, raw)
     }

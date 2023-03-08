@@ -13,6 +13,7 @@ import kr.wearebaord.hellbot.music.enums.EmojiValue
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.GuildVoiceState
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed.Field
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
@@ -22,6 +23,7 @@ import net.dv8tion.jda.api.interactions.components.ItemComponent
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.slf4j.LoggerFactory
 import java.awt.Color
+import java.util.concurrent.TimeUnit
 
 
 class BotCommands
@@ -29,35 +31,72 @@ class BotCommands
 private val log = LoggerFactory.getLogger(BotCommands::class.java)
 
 
-fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild) {
+fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild): Boolean {
     val selfVoiceState = member!!.voiceState
     println("selfVoiceState = ${selfVoiceState}")
-    if (selfVoiceState?.inAudioChannel() != true) {
-        channel.sendMessage("음성채널에 들어가주세요.").queue()
-        return
-    }
 
-    if (!member.hasPermission(Permission.VOICE_CONNECT)) {
-        channel.sendMessage("음성채널에 연결할 권한이 없습니다.").queue()
-        return
-    }
+    // 요청자가 음성 채널에 들어가있는가?
+    if (!isMemberEnteredChannel(selfVoiceState, channel)) return false
 
-    if (!member.hasPermission(Permission.VOICE_SPEAK)) {
-        channel.sendMessage("음성채널에서 말할 권한이 없습니다.").queue()
-        return
-    }
+    // 봇이 이미 음성채널에 들어가있는가?
+    if (isAlreadyConnectedChannel(guild)) return true
 
-    // 이미 들어와 있으면 알림 후 종료
-    if (guild.selfMember.voiceState!!.inAudioChannel()) {
-//        channel.sendMessage("이미 음성채널에 연결되어 있습니다.").queue()
-        return
-    }
+    // 요청자가 음성채널에 연결할 권한이 있는가?
+    // if (!isAbleToConnectVoiceChannel(member, channel)) return false
+
+    // 요청자가 음성채널에서 말할 권한이 있는가?
+    // if (!isAbleToSpeakVoice(member, channel)) return false
 
     val audioManager = guild.audioManager
-    val voiceChannel = selfVoiceState.channel
 
+    // selfVoiceState는 CacheFlag에 VOICE_STATE가 포함되어 있어야 한다
+    val voiceChannel = selfVoiceState!!.channel
+
+    // 봇이 음성 채널에 들어가도록 함
     audioManager.openAudioConnection(voiceChannel)
-//    channel.sendMessageFormat("음성채널에 연결되었습니다. (%s)", voiceChannel!!.name).queue()
+    return true
+}
+
+private fun isAlreadyConnectedChannel(guild: Guild): Boolean {
+    log.info("guild.selfMember = ${guild.selfMember}")
+    if (guild.selfMember.voiceState!!.inAudioChannel()) {
+        return true
+    }
+    return false
+}
+
+private fun isAbleToSpeakVoice(
+    member: Member,
+    channel: MessageChannel
+): Boolean {
+    if (!member.hasPermission(Permission.VOICE_SPEAK)) {
+        channel.sendMessage("음성채널에서 말할 권한이 없습니다.").queue()
+        return false
+    }
+    return true
+}
+
+private fun isAbleToConnectVoiceChannel(
+    member: Member,
+    channel: MessageChannel
+): Boolean {
+    if (!member.hasPermission(Permission.VOICE_CONNECT)) {
+        channel.sendMessage("음성채널에 연결할 권한이 없습니다.").queue()
+        return false
+    }
+    return true
+}
+
+fun isMemberEnteredChannel(
+    selfVoiceState: GuildVoiceState?,
+    channel: MessageChannel
+): Boolean {
+    if (selfVoiceState?.inAudioChannel() != true) {
+        channel.sendMessage("음성채널에 들어가주세요.").queue()
+        channel.deleteAllMessages()
+        return false
+    }
+    return true
 }
 
 fun leaveBot(guild: Guild, channel: TextChannel?) {
@@ -67,8 +106,8 @@ fun leaveBot(guild: Guild, channel: TextChannel?) {
         audioManager.closeAudioConnection()
     }
     channel?.sendEmbed(
-        title="봇이 음성채널에서 나갔습니다.",
-        description="봇이 음성채널에서 나갔습니다."
+        title = "봇이 음성채널에서 나갔습니다.",
+        description = "봇이 음성채널에서 나갔습니다."
     )
 }
 
@@ -79,14 +118,14 @@ fun String.isCorrectPrefix(): Boolean {
 
 
 fun doNotProcessMessage(command: String, commands: List<String>): Boolean {
-    if(!(commands.contains(command))){
+    if (!(commands.contains(command))) {
         throw IllegalArgumentException("잘못된 명령어입니다.")
     }
     return true
 }
 
-fun isValidTextChannel(channel: MessageChannel){
-    if(channel.name != TEXT_CHANNEL_NAME){
+fun isValidTextChannel(channel: MessageChannel) {
+    if (channel.name != TEXT_CHANNEL_NAME) {
         throw InvalidTextChannel()
     }
 }
@@ -112,7 +151,7 @@ fun isValidContentRaw(raw: String, commands: List<String>): String {
 }
 
 fun String.parseCommand(): String {
-    if(this.isEmpty() || this.length < PREFIX.length) return ""
+    if (this.isEmpty() || this.length < PREFIX.length) return ""
     return this.substring(PREFIX.length).split(" ")[0]
 }
 
@@ -126,14 +165,22 @@ fun parseContent(raw: String): String {
     return subList.joinToString(" ")
 }
 
+fun MessageChannel.deleteAllMessages() {
+    val channel = this as TextChannel
+    channel.deleteAllMessages()
+}
+
 fun TextChannel.deleteAllMessages() {
     try {
-        val messages = this.iterableHistory
-            .takeAsync(10) // Collect 1000 messages
+        val messageHistories = this.iterableHistory
+            .takeAsync(10) // Collect 10 messages
             .thenApply {
                 it.toList()
-            }.get()
-        // message를 100개 단위로 나눠서 삭제
+            }
+        if(messageHistories.get().isEmpty()) return
+        val messages = messageHistories.get(5, TimeUnit.SECONDS)
+
+        // message를 10개 단위로 나눠서 삭제
         log.info("deleteAllMessages - messages.size = ${messages.size}")
         if (messages.isEmpty()) return
         if (messages.size == 1) {
@@ -163,7 +210,7 @@ fun TextChannel.sendYoutubeEmbed(
     isPause: Boolean = false,
     isRepeat: Boolean = false,
 ) {
-    if(playTrackInfoList.isEmpty()) return
+    if (playTrackInfoList.isEmpty()) return
     // 트랙 정보 리스트 출력
     playTrackInfoList.forEach {
         log.info("PlayTrackInfo : $it")
@@ -210,7 +257,7 @@ fun TextChannel.sendYoutubeEmbed(
     val repeatButton = button(
         id = "repeatButton",
         label = if (isRepeat) "반복해제" else "반복하기",
-        emoji = if (isRepeat)EmojiValue.EXIT.fromUnicode() else EmojiValue.INFINITY.fromUnicode(),
+        emoji = if (isRepeat) EmojiValue.EXIT.fromUnicode() else EmojiValue.INFINITY.fromUnicode(),
     )
 
     val menu = StringSelectMenu(
@@ -268,7 +315,7 @@ fun TextChannel.sendEmbed(
     thumbnail: String? = null,
     fields: List<Field> = listOf(),
     actionRowsMap: Map<ComponentTypes, List<ItemComponent>> = mapOf(),
-    footerText : String? = null,
+    footerText: String? = null,
     footerIconUrl: String? = null,
 ) {
     // 1. 채널의 기존 메세지 삭제
