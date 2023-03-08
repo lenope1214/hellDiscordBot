@@ -36,32 +36,67 @@ class TrackScheduler(
 //        }.start()
     }
 
-    fun isPause(): Boolean {
-        return pause
+
+
+    override fun onPlayerPause(player: AudioPlayer?) {
+        // Player was paused
     }
 
-    fun doPause() {
-        pause = true
+    override fun onPlayerResume(player: AudioPlayer?) {
+        // Player was resumed
     }
 
-    fun doNotPause() {
-        pause = false
+    override fun onTrackStart(player: AudioPlayer, track: AudioTrack) {
+        // A track started playing
     }
 
-    fun isRepeat(): Boolean {
-        return repeat
+    override fun onTrackEnd(player: AudioPlayer, track: AudioTrack?, endReason: AudioTrackEndReason) {
+        // logging endReason
+        log.info("track: ${track}, onTrackEnd: $endReason")
+        when (endReason) {
+            REPLACED -> {
+                return
+            }
+            STOPPED, CLEANUP -> {
+                return
+            }
+            // 정상 종료, 트랙 불러오기 실패 시 다음 트랙 재생
+            FINISHED, LOAD_FAILED -> {
+                if (track != null) {
+                    val channel = track.userData as TextChannel
+                    PlayerManager.INSTANCE.next(channel)
+                }
+                return
+            }
+        }
+        // endReason == FINISHED: A track finished or died by an exception (mayStartNext = true).
+        // endReason == LOAD_FAILED: Loading of a track failed (mayStartNext = true).
+        // endReason == STOPPED: The player was stopped.
+        // endReason == REPLACED: Another track started playing while this had not finished
+        // endReason == CLEANUP: Player hasn't been queried for a while, if you want you can put a
+        //                       clone of this back to your queue
     }
 
-    fun doRepeat() {
-        repeat = true
+    override fun onTrackException(player: AudioPlayer?, track: AudioTrack?, exception: FriendlyException?) {
+        // An already playing track threw an exception (track end event will still be received separately)
     }
 
-    fun updateLastTrack(track: AudioTrack?) {
-        lastTrack = track
+    override fun onTrackStuck(player: AudioPlayer, track: AudioTrack, thresholdMs: Long) {
+        super.onTrackStuck(player, track, thresholdMs)
+        log.info("onTrackStuck: $thresholdMs")
+        nextTrack()
     }
 
-    fun doNotRepeat() {
-        repeat = false
+    fun prevTrack(): Boolean {
+        log.info("prevTrack - queue size = ${queue.size}")
+        if (lastTrack == null) {
+            player.stopTrack()
+            return false
+        }
+        val newQueue = LinkedBlockingQueue<AudioTrack>()
+        newQueue.offer(lastTrack)
+        newQueue.addAll(queue)
+        return player.startTrack(newQueue.first().makeClone(), false)
     }
 
     fun addQueue(track: AudioTrack) : Boolean{
@@ -132,75 +167,32 @@ class TrackScheduler(
         }
     }
 
-    override fun onPlayerPause(player: AudioPlayer?) {
-        // Player was paused
+
+    fun isPause(): Boolean {
+        return pause
     }
 
-    override fun onPlayerResume(player: AudioPlayer?) {
-        // Player was resumed
+    fun doPause() {
+        pause = true
     }
 
-    override fun onTrackStart(player: AudioPlayer, track: AudioTrack) {
-        // A track started playing
-
-
-//        val duration = track.duration
-//        val embed: MessageEmbed = EmbedBuilder()
-//            .setTitle("Now Playing")
-//            .setDescription(track.info.title)
-//            .addField("Duration", "${duration / 1000 / 60}m ${duration / 1000 % 60}s", true)
-//            .addField("Author", track.info.author, true)
-//            .setThumbnail("https://i.ytimg.com/vi/${track.identifier}/hqdefault.jpg")
-//            .build()
-//        log.info("onTrackStart: $track")
+    fun doNotPause() {
+        pause = false
     }
 
-    override fun onTrackEnd(player: AudioPlayer, track: AudioTrack?, endReason: AudioTrackEndReason) {
-        // logging endReason
-        log.info("track: ${track}, onTrackEnd: $endReason")
-        when (endReason) {
-            REPLACED -> {
-                return
-            }
-            STOPPED, CLEANUP -> {
-                return
-            }
-            // 정상 종료, 트랙 불러오기 실패 시 다음 트랙 재생
-            FINISHED, LOAD_FAILED -> {
-                if (track != null) {
-                    val channel = track.userData as TextChannel
-                    PlayerManager.INSTANCE.next(channel)
-                }
-                return
-            }
-        }
-        // endReason == FINISHED: A track finished or died by an exception (mayStartNext = true).
-        // endReason == LOAD_FAILED: Loading of a track failed (mayStartNext = true).
-        // endReason == STOPPED: The player was stopped.
-        // endReason == REPLACED: Another track started playing while this had not finished
-        // endReason == CLEANUP: Player hasn't been queried for a while, if you want you can put a
-        //                       clone of this back to your queue
+    fun isRepeat(): Boolean {
+        return repeat
     }
 
-    override fun onTrackException(player: AudioPlayer?, track: AudioTrack?, exception: FriendlyException?) {
-        // An already playing track threw an exception (track end event will still be received separately)
+    fun doRepeat() {
+        repeat = true
     }
 
-    override fun onTrackStuck(player: AudioPlayer, track: AudioTrack, thresholdMs: Long) {
-        super.onTrackStuck(player, track, thresholdMs)
-        log.info("onTrackStuck: $thresholdMs")
-        nextTrack()
+    fun updateLastTrack(track: AudioTrack?) {
+        lastTrack = track
     }
 
-    fun prevTrack(): Boolean {
-        log.info("prevTrack - queue size = ${queue.size}")
-        if (lastTrack == null) {
-            player.stopTrack()
-            return false
-        }
-        val newQueue = LinkedBlockingQueue<AudioTrack>()
-        newQueue.offer(lastTrack)
-        newQueue.addAll(queue)
-        return player.startTrack(newQueue.first().makeClone(), false)
+    fun doNotRepeat() {
+        repeat = false
     }
 }
