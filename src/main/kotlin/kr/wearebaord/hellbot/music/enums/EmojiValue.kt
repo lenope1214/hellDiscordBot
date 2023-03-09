@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.entities.emoji.Emoji
 enum class EmojiValue(val value: String){
     PLAY("▶"),
     PAUSE("⏸"),
-    EXIT("❌"),
+    EXIT("✖"),
     INFINITY("♾"),
     ;
     fun fromUnicode(): Emoji {

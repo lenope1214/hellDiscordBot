@@ -172,26 +172,15 @@ fun MessageChannel.deleteAllMessages() {
 
 fun TextChannel.deleteAllMessages() {
     try {
-        val messageHistories = this.iterableHistory
+        val iterableMessage = this.iterableHistory.takeIf { it != null } ?: return
+        iterableMessage
             .takeAsync(10) // Collect 10 messages
             .thenApply {
-                it.toList()
-            }
-        if(messageHistories.get().isEmpty()) return
-        val messages = messageHistories.get(5, TimeUnit.SECONDS)
-
-        // message를 10개 단위로 나눠서 삭제
-        log.info("deleteAllMessages - messages.size = ${messages.size}")
-        if (messages.isEmpty()) return
-        if (messages.size == 1) {
-            messages[0].delete().queue()
-        } else {
-            messages.chunked(10).forEach {
-                this.deleteMessages(it).queue().let {
-                    log.info("${this.name} 채널의 메세지 삭제 성공 - [ ${it} ]")
+                it.toList().forEach { m ->
+                    m.delete().queue()
                 }
             }
-        }
+
 
     } catch (e: Exception) {
         e.printStackTrace()
@@ -219,8 +208,10 @@ fun TextChannel.sendYoutubeEmbed(
     val tracks = playTrackInfoList.map { it.track }
     var fields = mutableListOf<Field>()
     val addedBy = playTrackInfoList.first().addedBy
-    val footerText = addedBy.roles.joinToString(" | ") { it.name }
+    // 등록자 정보 출력
+    val footerText = "${addedBy.nickname}(\n${addedBy.roles.joinToString(" | ") { it.name }})"
     val footerIconUrl = addedBy.effectiveAvatar.url
+
     fields.add(
         Field(
             "노래 길이",
@@ -244,6 +235,7 @@ fun TextChannel.sendYoutubeEmbed(
         id = "stopButton",
         style = ButtonStyle.DANGER,
         label = "정지",
+        emoji = EmojiValue.EXIT.fromUnicode(),
     )
 
     val skipButton = if (trackNames.size > 1) {
@@ -319,38 +311,38 @@ fun TextChannel.sendEmbed(
     footerIconUrl: String? = null,
 ) {
     // 1. 채널의 기존 메세지 삭제
-    this.deleteAllMessages()
+    this.deleteAllMessages().let{
+        // 2. 새로운 메세지 생성
+        val builder = EmbedBuilder()
 
-    // 2. 새로운 메세지 생성
-    val builder = EmbedBuilder()
-
-    fields.forEach {
-        builder.addField(it)
-    }
-
-    log.info("thumbnail : $thumbnail")
-    log.info("footerText : $footerText")
-    log.info("footerIconUrl : $footerIconUrl")
-    val messageEmbed = builder.setAuthor("HellBot")
-        .setTitle(title, url)
-        .setDescription(description)
-        .setAuthor(author)
-        .setThumbnail(thumbnail)
-        .setColor(Color(0xFF7B96))
-        .setFooter(footerText, footerIconUrl)
-        .build()
-
-    val sendMessageEmbeds = this
-        .sendMessageEmbeds(messageEmbed)
-
-
-    if (actionRowsMap.isNotEmpty()) {
-        actionRowsMap.forEach { (key, value) ->
-            sendMessageEmbeds
-                .addActionRow(value)
+        fields.forEach {
+            builder.addField(it)
         }
-    }
 
-    sendMessageEmbeds
-        .queue()
+        log.info("thumbnail : $thumbnail")
+        log.info("footerText : $footerText")
+        log.info("footerIconUrl : $footerIconUrl")
+        val messageEmbed = builder.setAuthor("HellBot")
+            .setTitle(title, url)
+            .setDescription(description)
+            .setAuthor(author)
+            .setThumbnail(thumbnail)
+            .setColor(Color(0xFF7B96))
+            .setFooter(footerText, footerIconUrl)
+            .build()
+
+        val sendMessageEmbeds = this
+            .sendMessageEmbeds(messageEmbed)
+
+
+        if (actionRowsMap.isNotEmpty()) {
+            actionRowsMap.forEach { (key, value) ->
+                sendMessageEmbeds
+                    .addActionRow(value)
+            }
+        }
+
+        sendMessageEmbeds
+            .queue()
+    }
 }
