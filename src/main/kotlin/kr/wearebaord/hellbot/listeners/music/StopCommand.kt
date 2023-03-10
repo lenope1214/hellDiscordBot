@@ -49,4 +49,8 @@ object StopCommand : CommandInterface {
         PlayerManager.INSTANCE.stop(channel as TextChannel, event.member!!.effectiveName)
         self.guild.audioManager.closeAudioConnection()
     }
+
+    override fun onHelp(): String {
+        TODO("Not yet implemented")
+    }
 }

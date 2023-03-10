@@ -189,7 +189,6 @@ class PlayerManager {
         log.info("resetTrack")
         val guild = channel.guild
         trackHash[guild.idLong] = mutableListOf()
-        leftChannel(guild)
         val musicManager = getMusicManager(guild).scheduler
         musicManager.updateLastTrack(null)
         channel.sendEmbed(
@@ -201,6 +200,16 @@ class PlayerManager {
             }\n재생목록을 다시 추가해주세요.",
             author = TEXT_CHANNEL_NAME,
         )
+        Thread {
+            Thread.sleep(60 * 1000 ) // 60 초 뒤에 나가게 함
+            // 이때 만약 다른 사람이 노래를 추가했다면 나가지 않음
+            // 종료되고 아무것도 추가 안 했을때 size를 확인해봐야 함
+            if(trackHash[guild.idLong]?.size ?: 0 > 0) {
+                log.info("다른 사람이 노래를 추가했으므로 나가지 않음")
+                return@Thread
+            }
+            leftChannel(guild)
+        }.start()
     }
 
     fun resume(textChannel: TextChannel) {
@@ -247,8 +256,6 @@ class PlayerManager {
     }
 
     fun leftChannel(guild: Guild, channel: TextChannel? = null) {
-        val musicManager = getMusicManager(guild)
-        musicManager.stopMusic()
         leaveBot(guild, channel)
     }
 

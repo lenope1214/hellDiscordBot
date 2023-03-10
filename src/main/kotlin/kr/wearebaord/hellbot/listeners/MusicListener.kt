@@ -24,9 +24,10 @@ object MusicListener : ListenerAdapter() {
     override fun onGuildReady(event: GuildReadyEvent) {
         val guild = event.guild
         val channels = guild.getTextChannelsByName(TEXT_CHANNEL_NAME, true)!! as List<TextChannel>
-        channels.forEach {
-            it.deleteAllMessages()
-            it.sendMessage("봇이 재시작되었습니다. 현재 버전 : $BOT_VERSION").queue()
+        channels.forEach {channel ->
+            channel.deleteAllMessages().let {
+                channel.sendMessage("봇이 재시작되었습니다. 현재 버전 : $BOT_VERSION").queue()
+            }
         }
     }
 

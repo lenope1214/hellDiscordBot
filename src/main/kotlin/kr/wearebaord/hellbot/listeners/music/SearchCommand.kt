@@ -7,8 +7,10 @@ import org.slf4j.LoggerFactory
 import kr.wearebaord.hellbot.music.PlayerManager
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 
-object PlayCommand : CommandInterface {
-    val log = LoggerFactory.getLogger(PlayCommand::class.java)
+object SearchCommand : CommandInterface {
+    val log = LoggerFactory.getLogger(SearchCommand::class.java)
+
+    val commands: List<String> = listOf("search", "sc", "ㄴㄷㅁㄱ초", "ㄴㅊ", "검색", "유튜브검색")
 
     override fun onAction(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
@@ -31,7 +33,7 @@ object PlayCommand : CommandInterface {
         // 요청자가 음성 채널에 들어가있는가?
         !isMemberEnteredChannel(memberVoiceState, channel)
 
-        play(event, raw)
+        search(event, raw)
     }
 
     override fun onHelp(): String {
@@ -39,30 +41,7 @@ object PlayCommand : CommandInterface {
     }
 
 
-    private fun play(event: MessageReceivedEvent, url: String) {
-        val channel = event.channel
+    private fun search(event: MessageReceivedEvent, url: String) {
 
-        val bot = event.guild!!.selfMember // bot infomation
-        val selfVoiceState = bot!!.voiceState
-        var url = url
-
-        log.info("url: $url")
-        if (!url.isHttpUrl()) {
-            log.info("url is not HTTP, search by ytsearch")
-            url = "ytsearch:$url"
-        }
-
-        try {
-            // 헬파티 봇이 음성 채널에 없다면 음성 채널에 참가시킨다.
-            if (!selfVoiceState!!.inAudioChannel()) {
-                joinVoiceChannelBot(event.channel, event.member!!, event.guild!!)
-            }
-            PlayerManager.INSTANCE
-                .loadAndPlay(channel as TextChannel, url, event.member!!)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            log.error("error: ${e.message}")
-        } finally {
-        }
     }
 }
