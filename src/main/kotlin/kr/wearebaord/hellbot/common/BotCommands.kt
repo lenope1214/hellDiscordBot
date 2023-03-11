@@ -10,6 +10,8 @@ import kr.wearebaord.hellbot.exception.InvalidTextChannel
 import kr.wearebaord.hellbot.music.PlayTrackInfo
 import kr.wearebaord.hellbot.music.enums.ComponentTypes
 import kr.wearebaord.hellbot.music.enums.EmojiValue
+import kr.wearebaord.hellbot.music.status.getRepeatEmoji
+import kr.wearebaord.hellbot.music.status.getRepeatText
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
@@ -21,9 +23,10 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.interactions.components.ActionComponent
 import net.dv8tion.jda.api.interactions.components.ItemComponent
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction
 import org.slf4j.LoggerFactory
 import java.awt.Color
-import java.util.concurrent.TimeUnit
+import java.time.OffsetDateTime
 
 
 class BotCommands
@@ -172,16 +175,19 @@ fun MessageChannel.deleteAllMessages() {
 
 fun TextChannel.deleteAllMessages() {
     try {
+        val deleteTime = OffsetDateTime.now().minusSeconds(1)
         val iterableMessage = this.iterableHistory.takeIf { it != null } ?: return
         iterableMessage
-            .takeAsync(10) // Collect 10 messages
+            .takeAsync(5) // Collect 5 messages
             .thenApply {
-                it.toList().forEach { m ->
-                    m.delete().queue()
+                it.forEach { m ->
+                    // 삭제요청한 시간보다 5초 이전에 만들어진 데이터만 삭제
+                    if(m.timeCreated.isBefore(deleteTime)) {
+                        // 공지가 포함되면 삭제하지 않는다.
+                        if(m.contentRaw.contains("[공지]").not()) m.delete().queue()
+                    }
                 }
             }
-
-
     } catch (e: Exception) {
         e.printStackTrace()
         log.error("채널의 메세지 삭제 실패 이유 : ${e.message}")
@@ -248,8 +254,8 @@ fun TextChannel.sendYoutubeEmbed(
 
     val repeatButton = button(
         id = "repeatButton",
-        label = if (isRepeat) "반복해제" else "반복하기",
-        emoji = if (isRepeat) EmojiValue.EXIT.fromUnicode() else EmojiValue.INFINITY.fromUnicode(),
+        label = getRepeatText(isRepeat),
+        emoji = getRepeatEmoji(isRepeat),
     )
 
     val menu = StringSelectMenu(
@@ -296,6 +302,7 @@ fun TextChannel.sendYoutubeEmbed(
         actionRowsMap = actionRowsMap,
         footerText = footerText,
         footerIconUrl = footerIconUrl,
+        isUpdate = playTrackInfoList.size > 1,
     )
 }
 
@@ -309,40 +316,63 @@ fun TextChannel.sendEmbed(
     actionRowsMap: Map<ComponentTypes, List<ItemComponent>> = mapOf(),
     footerText: String? = null,
     footerIconUrl: String? = null,
+    isUpdate: Boolean = false,
 ) {
-    // 1. 채널의 기존 메세지 삭제
+    // 메세지 임베드 값 생성
+    val builder = EmbedBuilder()
+
+    fields.forEach {
+        builder.addField(it)
+    }
+
+    val messageEmbed = builder.setAuthor("HellBot")
+        .setTitle(title, url)
+        .setDescription(description)
+        .setAuthor(author)
+        .setThumbnail(thumbnail)
+        .setColor(Color(0xFF7B96))
+        .setFooter(footerText, footerIconUrl)
+        .build()
+
+    val sendMessageEmbeds = this
+        .sendMessageEmbeds(messageEmbed)
+
+
+    addActionRows(actionRowsMap, sendMessageEmbeds)
+
+
+
+    // 만약, 채널에 기존에 보낸 embed가 존재한다면 수정하는 방식으로 한다.
+    if(isUpdate){
+        log.info("기존 메세지 수정")
+        // edit last embed
+        val messageChannel: MessageChannel = this
+        val lastMessage = messageChannel.latestMessageId.let {
+            messageChannel.edit
+        }
+        val lastEmbeds = lastMessage.embeds
+        log.info("lastEmbeds : $lastEmbeds")
+        lastMessage.editMessageEmbeds(messageEmbed).queue()
+    }
+
+    // 기존에 보낸 embed가 없다면 채널의 기존 메세지 삭제 후
     this.deleteAllMessages().let{
-        // 2. 새로운 메세지 생성
-        val builder = EmbedBuilder()
-
-        fields.forEach {
-            builder.addField(it)
-        }
-
-        log.info("thumbnail : $thumbnail")
-        log.info("footerText : $footerText")
-        log.info("footerIconUrl : $footerIconUrl")
-        val messageEmbed = builder.setAuthor("HellBot")
-            .setTitle(title, url)
-            .setDescription(description)
-            .setAuthor(author)
-            .setThumbnail(thumbnail)
-            .setColor(Color(0xFF7B96))
-            .setFooter(footerText, footerIconUrl)
-            .build()
-
-        val sendMessageEmbeds = this
-            .sendMessageEmbeds(messageEmbed)
-
-
-        if (actionRowsMap.isNotEmpty()) {
-            actionRowsMap.forEach { (key, value) ->
-                sendMessageEmbeds
-                    .addActionRow(value)
-            }
-        }
-
+        log.info("기존 메세지 삭제 후 새로운 메세지 생성")
+        // 새로운 메세지 생성
         sendMessageEmbeds
             .queue()
+
+    }
+}
+
+private fun addActionRows(
+    actionRowsMap: Map<ComponentTypes, List<ItemComponent>>,
+    sendMessageEmbeds: MessageCreateAction
+) {
+    if (actionRowsMap.isNotEmpty()) {
+        actionRowsMap.forEach { (key, value) ->
+            sendMessageEmbeds
+                .addActionRow(value)
+        }
     }
 }

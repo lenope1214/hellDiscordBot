@@ -4,8 +4,6 @@ import kr.wearebaord.hellbot.common.*
 import kr.wearebaord.hellbot.exception.InvalidTextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.slf4j.LoggerFactory
-import kr.wearebaord.hellbot.music.PlayerManager
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 
 object SearchCommand : CommandInterface {
     val log = LoggerFactory.getLogger(SearchCommand::class.java)

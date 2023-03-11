@@ -8,8 +8,10 @@ import kr.wearebaord.hellbot.common.parseCommand
 import kr.wearebaord.hellbot.listeners.music.PlayCommand
 import kr.wearebaord.hellbot.listeners.music.SkipCommand
 import kr.wearebaord.hellbot.listeners.music.StopCommand
-import kr.wearebaord.hellbot.music.PlayerManager
+import kr.wearebaord.hellbot.music.entity.PlayerManager
 import kr.wearebaord.hellbot.music.enums.EmojiValue
+import kr.wearebaord.hellbot.music.status.getRepeatEmoji
+import kr.wearebaord.hellbot.music.status.getRepeatText
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
@@ -123,8 +125,8 @@ object MusicListener : ListenerAdapter() {
                     // 기존 버튼 수정
                     event.editButton(
                         event.component
-                            .withLabel(if (isRepeat) "반복해제" else "반복")
-                            .withEmoji(if (isRepeat) EmojiValue.EXIT.fromUnicode() else EmojiValue.INFINITY.fromUnicode())
+                            .withLabel(getRepeatText(isRepeat))
+                            .withEmoji(getRepeatEmoji(isRepeat))
                     ).queue()
                 } catch (e: Exception) {
                     e.printStackTrace()

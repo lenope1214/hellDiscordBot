@@ -7,6 +7,7 @@ enum class EmojiValue(val value: String){
     PAUSE("⏸"),
     EXIT("✖"),
     INFINITY("♾"),
+    SINGLE("🔂"),
     ;
     fun fromUnicode(): Emoji {
         return Emoji.fromUnicode(this.value)

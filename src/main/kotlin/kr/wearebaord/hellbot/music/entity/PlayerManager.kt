@@ -1,4 +1,4 @@
-package kr.wearebaord.hellbot.music
+package kr.wearebaord.hellbot.music.entity
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
@@ -12,6 +12,8 @@ import kr.wearebaord.hellbot.common.leaveBot
 import kr.wearebaord.hellbot.common.sendEmbed
 import kr.wearebaord.hellbot.common.sendYoutubeEmbed
 import kr.wearebaord.hellbot.exception.MusicTitleIsNullException
+import kr.wearebaord.hellbot.music.GuildMusicManager
+import kr.wearebaord.hellbot.music.PlayTrackInfo
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
@@ -21,7 +23,7 @@ class PlayerManager {
     private val log = LoggerFactory.getLogger(PlayerManager::class.java)
     private val musicManagers: HashMap<Long, GuildMusicManager> = HashMap()
     private val audioPlayerManager: AudioPlayerManager = DefaultAudioPlayerManager()
-    var trackHash: HashMap<Long, MutableList<PlayTrackInfo>> = HashMap()
+    var ChannelHash: HashMap<Long, ChannelInfo> = HashMap()
 
     init {
         AudioSourceManagers.registerRemoteSources(this.audioPlayerManager)
@@ -83,29 +85,35 @@ class PlayerManager {
         })
     }
 
-    fun updateMessage(channel: TextChannel) {
-        // 기존 버튼을 수정?
+    fun updateLastEmbedMessage(channel: TextChannel) {
+        // 기존 embed message 수정?
 
     }
 
     fun sendMessage(channel: TextChannel) {
-        if(trackHash[channel.guild.idLong]?.size == 0) return
+        if(ChannelHash[channel.guild.idLong]!!.tracks.size == 0) return
         // track의 첫 번째 정보를 가져와 embed를 만든다
-        val firstTrack = trackHash[channel.guild.idLong]!!.first()!!.track!!
+        val firstTrack = ChannelHash[channel.guild.idLong]!!.tracks.first()!!.track!!
 
         val guild = channel.guild
         val musicManager = getMusicManager(guild).scheduler
         val pause = musicManager.isPause()
         val repeat = musicManager.isRepeat()
 
-        trackHash.forEach { log.info("trackHash - key: ${it.key}, value: ${it.value}") }
+        ChannelHash.forEach { log.info("trackHash - key: ${it.key}, value: ${it.value}") }
+
+        // 만약 마지막으로 보낸 embed가 있으면 수정하는 방식으로 진행한다.
+        val latestMessageId = channel.latestMessageId
+            log.info("latestMessageId : $latestMessageId")
+
+        // 마지막으로 보낸 embed가 없을 때
         channel.sendYoutubeEmbed(
             url = firstTrack.info.uri,
             title = firstTrack.info.title,
             author = firstTrack.info.author,
             duration = firstTrack.duration,
             youtubeIdentity = firstTrack.identifier,
-            playTrackInfoList = trackHash[channel.guild.idLong] ?: listOf(),
+            playTrackInfoList = ChannelHash[channel.guild.idLong]!!.tracks,
             isPause = pause,
             isRepeat = repeat,
         )
@@ -115,15 +123,18 @@ class PlayerManager {
         val guild = channel.guild
 
         // 없으면 새로운 리스트를 만들어 사용할 수 있게 한다.
-        if (trackHash[guild.idLong] == null) {
-            trackHash[guild.idLong] = mutableListOf()
+        if (ChannelHash[guild.idLong] == null) {
+            ChannelHash[guild.idLong] = ChannelInfo()
         }
 
-        trackHash[guild.idLong]!!.add(PlayTrackInfo(
+        ChannelHash[guild.idLong]!!.tracks.add(
+            PlayTrackInfo(
             track = track,
             addedBy = addedBy,
-        ))
+        )
+        )
         log.info("[노래 추가 됨] ${addedBy}에 의해 추가 된 노래 정보 - ${track.info.title} (${track.info.uri})")
+
         sendMessage(channel)
     }
 
@@ -133,7 +144,7 @@ class PlayerManager {
     fun next(channel: TextChannel): Boolean {
 
         val guild = channel.guild
-        var tracks: MutableList<AudioTrack> = trackHash[guild.idLong]?.map { it.track }?.toMutableList() ?: return false
+        var tracks: MutableList<AudioTrack> = ChannelHash[guild.idLong]!!.tracks.map { it.track }?.toMutableList() ?: return false
         log.info("trackHash - tracks.size : ${tracks?.size}")
 
         val musicManager = getMusicManager(guild).scheduler
@@ -159,7 +170,7 @@ class PlayerManager {
             }
 
             // 큐의 맨 처음 트랙정보 제거
-            trackHash[guild.idLong] = trackHash[guild.idLong]!!.drop(1).toMutableList()
+            ChannelHash[guild.idLong]!!.tracks = ChannelHash[guild.idLong]!!.tracks.drop(1).toMutableList()
             sendMessage(channel)
             true
         }
@@ -167,7 +178,7 @@ class PlayerManager {
 
     fun jumpTo(channel: TextChannel, index: Int) {
         val guild = channel.guild
-        val tracks = trackHash[guild.idLong]?.map { it.track }?.toMutableList()
+        val tracks = ChannelHash[guild.idLong]!!.tracks.map { it.track }
         val musicManager = getMusicManager(guild).scheduler
         musicManager.jumpTrack(index)
         // 1개 남았을 때도 스킵되면 없으므로 종료되어야 함.
@@ -176,8 +187,8 @@ class PlayerManager {
             stop(channel)
         } else {
             // index만큼 제거 -> jump와 같음
-            trackHash[guild.idLong] = trackHash[guild.idLong]!!.drop(index).toMutableList()
-            println("tracks.size : ${trackHash[guild.idLong]?.size}")
+            ChannelHash[guild.idLong]!!.tracks = ChannelHash[guild.idLong]!!.tracks.drop(index).toMutableList()
+            println("tracks.size : ${ChannelHash[guild.idLong]!!.tracks.size}")
             sendMessage(channel)
         }
     }
@@ -188,7 +199,7 @@ class PlayerManager {
     ) {
         log.info("resetTrack")
         val guild = channel.guild
-        trackHash[guild.idLong] = mutableListOf()
+        ChannelHash[guild.idLong]!!.tracks = mutableListOf()
         val musicManager = getMusicManager(guild).scheduler
         musicManager.updateLastTrack(null)
         channel.sendEmbed(
@@ -204,7 +215,7 @@ class PlayerManager {
             Thread.sleep(60 * 1000 ) // 60 초 뒤에 나가게 함
             // 이때 만약 다른 사람이 노래를 추가했다면 나가지 않음
             // 종료되고 아무것도 추가 안 했을때 size를 확인해봐야 함
-            if(trackHash[guild.idLong]?.size ?: 0 > 0) {
+            if(ChannelHash[guild.idLong]!!.tracks.size > 0) {
                 log.info("다른 사람이 노래를 추가했으므로 나가지 않음")
                 return@Thread
             }

@@ -1,17 +1,14 @@
 package kr.wearebaord.hellbot.listeners
 
 import kr.wearebaord.hellbot.BOT_ID
-import kr.wearebaord.hellbot.JDA
 import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
 import kr.wearebaord.hellbot.makeMessage
-import kr.wearebaord.hellbot.music.PlayerManager
+import kr.wearebaord.hellbot.music.entity.PlayerManager
 import kr.wearebaord.hellbot.utils.KoreanUtil
 import net.dv8tion.jda.api.Permission
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
-import net.dv8tion.jda.api.events.thread.member.ThreadMemberLeaveEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
