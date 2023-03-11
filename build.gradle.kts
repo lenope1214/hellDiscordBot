@@ -3,10 +3,19 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     val kotlinVersion: String by System.getProperties() // 1.8.10
 
+
     kotlin("jvm") version kotlinVersion
     id("java")
+
+    id("org.jlleitschuh.gradle.ktlint") version "11.3.1" // kotlin lint
+    id("io.gitlab.arturbosch.detekt") version "1.22.0" // detekt lint
 //    application
 }
+
+val reportMerge by tasks.registering(io.gitlab.arturbosch.detekt.report.ReportMergeTask::class) {
+    output.set(rootProject.buildDir.resolve("reports/detekt/detekt.sarif"))
+}
+
 
 //application {
 //    mainClass.set("kr.wearebaord.hellbot.Botkt")
@@ -50,6 +59,15 @@ dependencies {
     // test
     testApi("junit:junit:${junitVersion}")
     testApi("org.jetbrains.kotlin:kotlin-test-junit:${kotlinVersion}")
+
+    // lint
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.19.0")
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    config = files("$rootDir/config/detekt.yml")
 }
 
 tasks.withType<KotlinCompile> {

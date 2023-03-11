@@ -1,0 +1,104 @@
+build:
+    maxIssues: 0
+
+config:
+    validation: true
+    warningsAsErrors: true
+
+output-reports:
+    active: true
+    exclude:
+        - 'TxtOutputReport'
+        - 'XmlOutputReport'
+
+complexity:
+    active: true
+    ComplexCondition:
+        active: true
+        threshold: 4
+    ComplexInterface:
+        active: false
+        threshold: 10
+        includeStaticDeclarations: false
+        includePrivateDeclarations: false
+    ComplexMethod:
+        active: true
+        threshold: 15
+        ignoreSingleWhenExpression: false
+        ignoreSimpleWhenEntries: false
+        ignoreNestingFunctions: false
+        nestingFunctions:
+            - 'also'
+            - 'apply'
+            - 'forEach'
+            - 'isNotNull'
+            - 'ifNull'
+            - 'let'
+            - 'run'
+            - 'use'
+            - 'with'
+    LargeClass:
+        active: true
+        threshold: 500
+    LongMethod:
+        active: true
+        threshold: 30
+    LongParameterList:
+        active: true
+        functionThreshold: 5
+        constructorThreshold: 7
+        ignoreDefaultParameters: false
+        ignoreDataClasses: true
+    NestedBlockDepth:
+        active: true
+        threshold: 4
+    TooManyFunctions:
+        active: true
+        thresholdInFiles: 30
+        thresholdInClasses: 20
+        thresholdInInterfaces: 10
+        thresholdInObjects: 20
+        thresholdInEnums: 5
+        ignoreDeprecated: true
+        ignorePrivate: true
+        ignoreOverridden: false
+
+coroutines:
+    active: true
+    GlobalCoroutineUsage:
+        active: true
+    RedundantSuspendModifier:
+        active: true
+    SleepInsteadOfDelay:
+        active: true
+    SuspendFunWithFlowReturnType:
+        active: true
+
+empty-blocks:
+    active: true
+    EmptyClassBlock:
+        active: false
+    EmptyFunctionBlock:
+        active: false
+    EmptyKtFile:
+        active: false
+
+naming:
+    active: true
+    BooleanPropertyNaming:
+        active: true
+    NonBooleanPropertyPrefixedWithIs:
+        active: true
+
+performance:
+    active: true
+    SpreadOperator:
+        active: false
+
+potential-bugs:
+    active: true
+    HasPlatformType:
+        active: true
+
+style:
+    active: false
