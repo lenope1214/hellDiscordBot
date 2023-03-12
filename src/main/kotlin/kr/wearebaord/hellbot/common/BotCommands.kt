@@ -8,7 +8,6 @@ import kr.wearebaord.hellbot.SHOW_BUTTONS
 import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
 import kr.wearebaord.hellbot.exception.InvalidTextChannel
 import kr.wearebaord.hellbot.music.PlayTrackInfo
-import kr.wearebaord.hellbot.music.entity.PlayerManager
 import kr.wearebaord.hellbot.music.enums.ComponentTypes
 import kr.wearebaord.hellbot.music.enums.EmojiValue
 import kr.wearebaord.hellbot.music.status.getRepeatEmoji
@@ -22,9 +21,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed.Field
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.interactions.components.ActionComponent
-import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.ItemComponent
-import net.dv8tion.jda.api.interactions.components.LayoutComponent
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction
 import net.dv8tion.jda.api.requests.restaction.MessageEditAction
@@ -32,15 +29,13 @@ import org.slf4j.LoggerFactory
 import java.awt.Color
 import java.time.OffsetDateTime
 
-
 class BotCommands
 
 private val log = LoggerFactory.getLogger(BotCommands::class.java)
 
-
 fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild): Boolean {
     val selfVoiceState = member!!.voiceState
-    println("selfVoiceState = ${selfVoiceState}")
+    println("selfVoiceState = $selfVoiceState")
 
     // 요청자가 음성 채널에 들어가있는가?
     if (!isMemberEnteredChannel(selfVoiceState, channel)) return false
@@ -123,7 +118,6 @@ fun String.isCorrectPrefix(): Boolean {
     return this.startsWith(PREFIX, ignoreCase = true)
 }
 
-
 fun doNotProcessMessage(command: String, commands: List<String>): Boolean {
     if (!(commands.contains(command))) {
         throw IllegalArgumentException("잘못된 명령어입니다.")
@@ -138,7 +132,6 @@ fun isValidTextChannel(channel: MessageChannel) {
 }
 
 fun isValidContentRaw(raw: String, commands: List<String>): String {
-
     val command = raw.let {
         if (it.isEmpty()) {
             throw IllegalArgumentException("raw is empty")
@@ -207,7 +200,7 @@ fun TextChannel.sendYoutubeEmbed(
     youtubeIdentity: String = "",
     playTrackInfoList: List<PlayTrackInfo>,
     isPause: Boolean = false,
-    isRepeat: Boolean = false,
+    isRepeat: Boolean = false
 ) {
     if (playTrackInfoList.isEmpty()) return
     // 트랙 정보 리스트 출력
@@ -226,10 +219,9 @@ fun TextChannel.sendYoutubeEmbed(
         Field(
             "노래 길이",
             duration.convertMsToMmSs(),
-            true,
+            true
         )
     )
-
 
     val trackNames = tracks.map { it.info.title }
     log.info("trackNames : $trackNames")
@@ -238,28 +230,30 @@ fun TextChannel.sendYoutubeEmbed(
         id = if (isPause) "playButton" else "pauseButton",
         style = ButtonStyle.PRIMARY,
         label = if (isPause) "재생" else "일시정지",
-        emoji = if (isPause) EmojiValue.PLAY.fromUnicode() else EmojiValue.PAUSE.fromUnicode(),
+        emoji = if (isPause) EmojiValue.PLAY.fromUnicode() else EmojiValue.PAUSE.fromUnicode()
     )
 
     val stopButton = button(
         id = "stopButton",
         style = ButtonStyle.DANGER,
         label = "정지",
-        emoji = EmojiValue.EXIT.fromUnicode(),
+        emoji = EmojiValue.EXIT.fromUnicode()
     )
 
     val skipButton = if (trackNames.size > 1) {
         button(
             id = "skipButton",
             style = ButtonStyle.SECONDARY,
-            label = "다음곡",
+            label = "다음곡"
         )
-    } else null
+    } else {
+        null
+    }
 
     val repeatButton = button(
         id = "repeatButton",
         label = getRepeatText(isRepeat),
-        emoji = getRepeatEmoji(isRepeat),
+        emoji = getRepeatEmoji(isRepeat)
     )
 
     val menu = StringSelectMenu(
@@ -277,14 +271,14 @@ fun TextChannel.sendYoutubeEmbed(
     )
 
     var actionRowsMap: Map<ComponentTypes, List<ActionComponent>> = mapOf(
-        ComponentTypes.STRING_MENU to listOf(menu),
+        ComponentTypes.STRING_MENU to listOf(menu)
     )
 
     if (SHOW_BUTTONS) {
         var buttons = ComponentTypes.BUTTON to mutableListOf(
             playButton,
             stopButton,
-            repeatButton,
+            repeatButton
         )
         if (skipButton != null) {
             buttons.second.add(skipButton)
@@ -299,11 +293,11 @@ fun TextChannel.sendYoutubeEmbed(
         title = title,
         description = description,
         author = author,
-        thumbnail = youtubeIdentity.isNotEmpty().let { "https://i.ytimg.com/vi/${youtubeIdentity}/hqdefault.jpg" },
+        thumbnail = youtubeIdentity.isNotEmpty().let { "https://i.ytimg.com/vi/$youtubeIdentity/hqdefault.jpg" },
         fields = fields,
         actionRowsMap = actionRowsMap,
         footerText = footerText,
-        footerIconUrl = footerIconUrl,
+        footerIconUrl = footerIconUrl
     )
 }
 
@@ -316,7 +310,7 @@ fun TextChannel.sendEmbed(
     fields: List<Field> = listOf(),
     actionRowsMap: Map<ComponentTypes, List<ItemComponent>> = mapOf(),
     footerText: String? = null,
-    footerIconUrl: String? = null,
+    footerIconUrl: String? = null
 ) {
     // 메세지 임베드 값 생성
     val builder = EmbedBuilder()
@@ -337,31 +331,27 @@ fun TextChannel.sendEmbed(
     val sendMessageEmbeds = this
         .sendMessageEmbeds(messageEmbed)
 
-
     addActionRows(actionRowsMap, sendMessageEmbeds)
 
-
-
     // 만약, 채널에 기존에 보낸 embed가 존재한다면 수정하는 방식으로 한다.
-    if(isUpdate){
-        log.info("기존 메세지 수정")
-        // edit last embed
-        val messageChannel: MessageChannel = this
-        val lastMessage = messageChannel.latestMessageId.let {
-            messageChannel.edit
-        }
-        val lastEmbeds = lastMessage.embeds
-        log.info("lastEmbeds : $lastEmbeds")
-        lastMessage.editMessageEmbeds(messageEmbed).queue()
-    }
+//    if(isUpdate){
+//        log.info("기존 메세지 수정")
+//        // edit last embed
+//        val messageChannel: MessageChannel = this
+//        val lastMessage = messageChannel.latestMessageId.let {
+//            messageChannel.edit
+//        }
+//        val lastEmbeds = lastMessage.embeds
+//        log.info("lastEmbeds : $lastEmbeds")
+//        lastMessage.editMessageEmbeds(messageEmbed).queue()
+//    }
 
     // 기존에 보낸 embed가 없다면 채널의 기존 메세지 삭제 후
-    this.deleteAllMessages().let{
+    this.deleteAllMessages().let {
         log.info("기존 메세지 삭제 후 새로운 메세지 생성")
         // 새로운 메세지 생성
         sendMessageEmbeds
             .queue()
-
     }
 }
 
@@ -380,7 +370,7 @@ private fun addActionRows(
 
 private fun updateActionRows(
     actionRowsMap: Map<ComponentTypes, List<ItemComponent>>,
-    sendMessageEmbeds: MessageEditAction,
+    sendMessageEmbeds: MessageEditAction
 ) {
     if (actionRowsMap.isNotEmpty()) {
         var components: List<ItemComponent> = mutableListOf()

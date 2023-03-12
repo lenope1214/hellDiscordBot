@@ -5,7 +5,6 @@ import kr.wearebaord.hellbot.PREFIX
 import kr.wearebaord.hellbot.common.isValidContentRaw
 import kr.wearebaord.hellbot.common.joinVoiceChannelBot
 import kr.wearebaord.hellbot.common.leaveBot
-import kr.wearebaord.hellbot.common.sendEmbed
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -55,6 +54,5 @@ class CommandListener : ListenerAdapter() {
 //        if (raw.equals(PREFIX + "join", ignoreCase = true)) {
 //
 //        }
-
     }
 }

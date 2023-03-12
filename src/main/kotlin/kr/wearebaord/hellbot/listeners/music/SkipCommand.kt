@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.slf4j.LoggerFactory
 
-object SkipCommand : CommandInterface{
+object SkipCommand : CommandInterface {
     val log = LoggerFactory.getLogger(SkipCommand::class.java)
 
     val commands: List<String> = listOf("sk", "skip", "나", "나ㅑㅔ", "넘기기", "다음", "next", "nt", "nxt")

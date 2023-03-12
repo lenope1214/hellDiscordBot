@@ -3,11 +3,7 @@ package kr.wearebaord.hellbot
 import kr.wearebaord.hellbot.configs.Config
 import kr.wearebaord.hellbot.configs.EnvTypes
 import kr.wearebaord.hellbot.listeners.DefaultListener
-import kr.wearebaord.hellbot.listeners.MessageListener
 import kr.wearebaord.hellbot.listeners.MusicListener
-import kr.wearebaord.hellbot.listeners.music.PlayCommand
-import kr.wearebaord.hellbot.listeners.music.SkipCommand
-import kr.wearebaord.hellbot.listeners.music.StopCommand
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -57,12 +53,11 @@ suspend fun main(vararg args: String) {
     // 환경 설정, prod, dev에 맞게 설정
     initEnvironment(PROFILE)
 
-
     val jdaBuilder = JDABuilder.createDefault(TOKEN)
     JDA = configureMemoryUsage(jdaBuilder)
         .setActivity(
             Activity.playing(
-                "버전 : ${BOT_VERSION} 도움말 : ${PREFIX}도움말"
+                "버전 : $BOT_VERSION 도움말 : ${PREFIX}도움말"
             )
         )
         .enableIntents(
@@ -71,7 +66,7 @@ suspend fun main(vararg args: String) {
             GatewayIntent.GUILD_MEMBERS,
             GatewayIntent.GUILD_MESSAGES,
             GatewayIntent.GUILD_MESSAGE_REACTIONS,
-            GatewayIntent.GUILD_VOICE_STATES,
+            GatewayIntent.GUILD_VOICE_STATES
         )
         .enableCache(
             CacheFlag.ACTIVITY,
@@ -79,7 +74,7 @@ suspend fun main(vararg args: String) {
             CacheFlag.EMOJI,
             CacheFlag.CLIENT_STATUS,
             CacheFlag.MEMBER_OVERRIDES,
-            CacheFlag.ROLE_TAGS,
+            CacheFlag.ROLE_TAGS
         )
         // cache를 사용하지 않는다면, 이벤트를 받을 수 없다.
         .disableCache(
@@ -88,7 +83,7 @@ suspend fun main(vararg args: String) {
         .addEventListeners(
             DefaultListener,
 //            MessageListener,
-            MusicListener,
+            MusicListener
         )
         .build()
         .awaitReady()
@@ -102,14 +97,14 @@ suspend fun main(vararg args: String) {
     // 5초마다 메세지를 삭제하는 이유는, 채팅이 쌓이는 것을 방지하기 위함이다.
 
     // logging application id
-    println("PROFILE = ${PROFILE}")
-    println("TOKEN = ${TOKEN}")
-    println("PREFIX = ${PREFIX}")
-    println("OWNER_ID = ${OWNER_ID}")
-    println("TEXT_CHANNEL_NAME = ${TEXT_CHANNEL_NAME}")
+    println("PROFILE = $PROFILE")
+    println("TOKEN = $TOKEN")
+    println("PREFIX = $PREFIX")
+    println("OWNER_ID = $OWNER_ID")
+    println("TEXT_CHANNEL_NAME = $TEXT_CHANNEL_NAME")
     println("Application ID: ${JDA!!.selfUser.id}")
-    println("VOLUME = ${VOLUME}")
-    println("SHOW_BUTTONS = ${SHOW_BUTTONS}")
+    println("VOLUME = $VOLUME")
+    println("SHOW_BUTTONS = $SHOW_BUTTONS")
 }
 
 fun initEnvironment(profile: EnvTypes) {

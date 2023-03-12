@@ -60,13 +60,13 @@ object DefaultListener : ListenerAdapter() {
                 val leftMember = leftChannel.members[0]
                 log.info("leftMember: $leftMember")
                 // 만약 헬파티봇이 혼자 남아있다면 내쫓는다.
-                if(leftMember.id == BOT_ID){
+                if (leftMember.id == BOT_ID) {
                     val textChannel = leftChannel.guild.textChannels.find {
                         it.name == TEXT_CHANNEL_NAME
                     }
                     PlayerManager.getInstance().leftChannel(
                         guild = leftChannel.guild,
-                        channel = textChannel,
+                        channel = textChannel
                     )
                 }
 //                member.defaultChannel?.sendMessage("${member}님이 나가셨습니다.")?.queue()
@@ -115,7 +115,7 @@ object DefaultListener : ListenerAdapter() {
 
                     나도 되고 싶어
 
-                    나도 `${nickname}`${KoreanUtil.getCompleteWord(nickname!!, "이", "가")} 되고 싶어
+                    나도 `$nickname`${KoreanUtil.getCompleteWord(nickname!!, "이", "가")} 되고 싶어
 
                     너였구나
 
@@ -133,7 +133,8 @@ object DefaultListener : ListenerAdapter() {
 
             "사실부탁임" -> {
                 makeMessage(
-                    event, """
+                    event,
+                    """
                     사실 부탁임...
 
                     근데 어쩔 수 없음 ㅠㅠ
@@ -141,15 +142,15 @@ object DefaultListener : ListenerAdapter() {
                     내가 뭘 할 수 있는 게 없음 ㅜㅜㅜㅜ
 
                     `${event.user.name}`${
-                        KoreanUtil.getCompleteWord(
-                            event.user.name!!,
-                            "은",
-                            "는",
-                        )
+                    KoreanUtil.getCompleteWord(
+                        event.user.name!!,
+                        "은",
+                        "는"
+                    )
                     } 좆밥 새끼임 ㅠ
 
                     존나 화내거나 욕하는 거 말고 할 수 있는 게 없음 ㅠㅠ
-                """.trimIndent()
+                    """.trimIndent()
                 )
             }
         }
