@@ -4,7 +4,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 
 class GuildMusicManager(
-    manager: AudioPlayerManager,
+    manager: AudioPlayerManager
 ) {
     val audioPlayer: AudioPlayer
     val scheduler: TrackScheduler
@@ -25,7 +25,7 @@ class GuildMusicManager(
         this.scheduler.player.stopTrack()
     }
 
-    fun stopMusic(){
+    fun stopMusic() {
         stopTrack()
         clearQueue()
     }

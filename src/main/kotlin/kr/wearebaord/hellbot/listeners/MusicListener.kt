@@ -26,7 +26,7 @@ object MusicListener : ListenerAdapter() {
     override fun onGuildReady(event: GuildReadyEvent) {
         val guild = event.guild
         val channels = guild.getTextChannelsByName(TEXT_CHANNEL_NAME, true)!! as List<TextChannel>
-        channels.forEach {channel ->
+        channels.forEach { channel ->
             channel.deleteAllMessages().let {
                 channel.sendMessage("봇이 재시작되었습니다. 현재 버전 : $BOT_VERSION").queue()
             }
@@ -36,11 +36,13 @@ object MusicListener : ListenerAdapter() {
     override fun onMessageReceived(event: MessageReceivedEvent) {
         val contentRaw = event.message.contentRaw
         if (
-            contentRaw.isNullOrEmpty()
-            && !contentRaw.contains(" ")
-            && !contentRaw.isCorrectPrefix()
-            && contentRaw.length < 3
-        ) return
+            contentRaw.isNullOrEmpty() &&
+            !contentRaw.contains(" ") &&
+            !contentRaw.isCorrectPrefix() &&
+            contentRaw.length < 3
+        ) {
+            return
+        }
         when (event.message.contentRaw.parseCommand()) {
 //            in PlayCommand.commands
             in StopCommand.commands -> {
@@ -53,7 +55,6 @@ object MusicListener : ListenerAdapter() {
             else -> {
                 PlayCommand.onAction(event)
             }
-
         }
     }
 

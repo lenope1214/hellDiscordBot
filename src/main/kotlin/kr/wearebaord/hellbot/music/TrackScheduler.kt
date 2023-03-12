@@ -5,7 +5,11 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason.*
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason.CLEANUP
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason.FINISHED
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason.LOAD_FAILED
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason.REPLACED
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason.STOPPED
 import kr.wearebaord.hellbot.VOLUME
 import kr.wearebaord.hellbot.music.entity.PlayerManager
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
@@ -13,9 +17,8 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
-
 class TrackScheduler(
-    val player: AudioPlayer,
+    val player: AudioPlayer
 ) : AudioEventAdapter() {
     private var pause: Boolean = false
     private var repeat: Boolean = false
@@ -37,8 +40,6 @@ class TrackScheduler(
 //        }.start()
     }
 
-
-
     override fun onPlayerPause(player: AudioPlayer?) {
         // Player was paused
     }
@@ -53,7 +54,7 @@ class TrackScheduler(
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack?, endReason: AudioTrackEndReason) {
         // logging endReason
-        log.info("track: ${track}, onTrackEnd: $endReason")
+        log.info("track: $track, onTrackEnd: $endReason")
         when (endReason) {
             REPLACED -> {
                 return
@@ -100,7 +101,7 @@ class TrackScheduler(
         return player.startTrack(newQueue.first().makeClone(), false)
     }
 
-    fun addQueue(track: AudioTrack) : Boolean{
+    fun addQueue(track: AudioTrack): Boolean {
         try {
             // startTrack이 true일 때는 현재 재생하는 노래가 없을때 바로 재생시켰음을 의미
 
@@ -127,12 +128,13 @@ class TrackScheduler(
     fun nextTrack() {
         // noInterrupt() is a method on AudioPlayer which is used to make sure the current track finishes playing
         // 만약 다음 노래가 없다면 종료
-        log.info("nextTrack - queue size = ${queue.size}, isRepeat: ${isRepeat()}, lastTrack: ${lastTrack?.info?.title}")
+        log.info(
+            "nextTrack - queue size = ${queue.size}, isRepeat: ${isRepeat()}, lastTrack: ${lastTrack?.info?.title}"
+        )
 
         if (isRepeat() && lastTrack != null) {
             // 만약 repeat가 true이고 마지막 곡이 있다면 마지막 곡을 큐에 다시 추가
             queue.add(lastTrack)
-
         } else if (queue.isEmpty()) {
             // 만약 반복재생이 아니고 큐가 비어있다면 종료
             player.stopTrack()
@@ -164,10 +166,8 @@ class TrackScheduler(
                 // 다음 트랙으로 이동
                 player.startTrack(track.makeClone(), false)
             }
-
         }
     }
-
 
     fun isPause(): Boolean {
         return pause

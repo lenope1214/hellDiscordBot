@@ -4,7 +4,7 @@ import kr.wearebaord.hellbot.music.PlayTrackInfo
 import org.slf4j.LoggerFactory
 
 data class ChannelInfo(
-    var tracks: MutableList<PlayTrackInfo> = mutableListOf(),
+    var tracks: MutableList<PlayTrackInfo> = mutableListOf()
 ) {
 
     private val log = LoggerFactory.getLogger(ChannelInfo::class.java)

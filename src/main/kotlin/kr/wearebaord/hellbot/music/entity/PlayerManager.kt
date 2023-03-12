@@ -25,9 +25,9 @@ class PlayerManager {
     private val audioPlayerManager: AudioPlayerManager = DefaultAudioPlayerManager()
     private var channelHash: HashMap<Long, ChannelInfo> = HashMap()
 
-    fun getChannelHash(idLong: Long): ChannelInfo{
+    fun getChannelHash(idLong: Long): ChannelInfo {
         var channelInfo = channelHash[idLong]
-        if(channelInfo == null){
+        if (channelInfo == null) {
             channelInfo = ChannelInfo()
         }
         return channelInfo
@@ -46,60 +46,62 @@ class PlayerManager {
         }
     }
 
-    fun loadAndPlay(channel: TextChannel, trackUrl: String, addedBy: Member): Unit {
+    fun loadAndPlay(channel: TextChannel, trackUrl: String, addedBy: Member) {
         log.info("loadAndPlay: $trackUrl")
         val musicManager = this.getMusicManager(channel.guild).scheduler
-        this.audioPlayerManager.loadItemOrdered(musicManager, trackUrl, object : AudioLoadResultHandler {
-            override fun trackLoaded(track: AudioTrack) {
-                log.info("trackLoaded: ${track.info.title} (${track.info.uri})")
-                try {
-                    if (track.info.title == null) {
-                        throw MusicTitleIsNullException()
-                    }
-                    track.userData = channel
+        this.audioPlayerManager.loadItemOrdered(
+            musicManager,
+            trackUrl,
+            object : AudioLoadResultHandler {
+                override fun trackLoaded(track: AudioTrack) {
+                    log.info("trackLoaded: ${track.info.title} (${track.info.uri})")
+                    try {
+                        if (track.info.title == null) {
+                            throw MusicTitleIsNullException()
+                        }
+                        track.userData = channel
 
-                    val isAddedQueue = musicManager.addQueue(track)
-                    if (isAddedQueue) {
-                        plus(channel, track, addedBy)
-                    } else {
-                        channel.sendEmbed("노래 정보를 불러오는데에 실패했습니다. 다시 시도해주세요.")
+                        val isAddedQueue = musicManager.addQueue(track)
+                        if (isAddedQueue) {
+                            plus(channel, track, addedBy)
+                        } else {
+                            channel.sendEmbed("노래 정보를 불러오는데에 실패했습니다. 다시 시도해주세요.")
+                        }
+                    } catch (e: Exception) {
+                        log.error("trackLoaded error: ${e.message}")
+                        e.printStackTrace()
                     }
-                } catch (e: Exception) {
-                    log.error("trackLoaded error: ${e.message}")
-                    e.printStackTrace()
                 }
 
-            }
+                override fun playlistLoaded(playlist: AudioPlaylist) {
+                    val tracks = playlist.tracks
+                    trackLoaded(tracks[0])
+                }
 
-            override fun playlistLoaded(playlist: AudioPlaylist) {
-                val tracks = playlist.tracks
-                trackLoaded(tracks[0])
-            }
+                override fun noMatches() {
+                    log.info("재생할 영상(노래)을 찾을 수 없습니다.: $trackUrl")
+                    channel.sendMessage("No matches found for $trackUrl").queue()
+                }
 
-            override fun noMatches() {
-                log.info("재생할 영상(노래)을 찾을 수 없습니다.: $trackUrl")
-                channel.sendMessage("No matches found for $trackUrl").queue()
+                /**
+                 * Called when loading an item failed with an exception.
+                 * @param e The exception that was thrown
+                 */
+                override fun loadFailed(e: FriendlyException) {
+                    e.printStackTrace()
+                    log.error("loadFailed: ${e.message}")
+                    channel.sendMessage("재생 불가능한 노래입니다.").queue()
+                }
             }
-
-            /**
-             * Called when loading an item failed with an exception.
-             * @param e The exception that was thrown
-             */
-            override fun loadFailed(e: FriendlyException) {
-                e.printStackTrace()
-                log.error("loadFailed: ${e.message}")
-                channel.sendMessage("재생 불가능한 노래입니다.").queue()
-            }
-        })
+        )
     }
 
     fun updateLastEmbedMessage(channel: TextChannel) {
         // 기존 embed message 수정?
-
     }
 
     fun sendMessage(channel: TextChannel) {
-        if(channelHash[channel.guild.idLong]!!.tracks.size == 0) return
+        if (channelHash[channel.guild.idLong]!!.tracks.size == 0) return
         // track의 첫 번째 정보를 가져와 embed를 만든다
         val firstTrack = channelHash[channel.guild.idLong]!!.tracks.first()!!.track!!
 
@@ -112,7 +114,7 @@ class PlayerManager {
 
         // 만약 마지막으로 보낸 embed가 있으면 수정하는 방식으로 진행한다.
         val latestMessageId = channel.latestMessageId
-            log.info("latestMessageId : $latestMessageId")
+        log.info("latestMessageId : $latestMessageId")
 
         // 마지막으로 보낸 embed가 없을 때
         channel.sendYoutubeEmbed(
@@ -123,11 +125,11 @@ class PlayerManager {
             youtubeIdentity = firstTrack.identifier,
             playTrackInfoList = channelHash[channel.guild.idLong]!!.tracks,
             isPause = pause,
-            isRepeat = repeat,
+            isRepeat = repeat
         )
     }
 
-    fun plus(channel: TextChannel, track: AudioTrack, addedBy : Member) {
+    fun plus(channel: TextChannel, track: AudioTrack, addedBy: Member) {
         val guild = channel.guild
 
         // 없으면 새로운 리스트를 만들어 사용할 수 있게 한다.
@@ -137,9 +139,9 @@ class PlayerManager {
 
         channelHash[guild.idLong]!!.tracks.add(
             PlayTrackInfo(
-            track = track,
-            addedBy = addedBy,
-        )
+                track = track,
+                addedBy = addedBy
+            )
         )
         log.info("[노래 추가 됨] ${addedBy}에 의해 추가 된 노래 정보 - ${track.info.title} (${track.info.uri})")
 
@@ -150,9 +152,11 @@ class PlayerManager {
      * 만약 다음 곡을 재생했다면 true, 종료됐다면 false
      */
     fun next(channel: TextChannel): Boolean {
-
         val guild = channel.guild
-        var tracks: MutableList<AudioTrack> = channelHash[guild.idLong]!!.tracks.map { it.track }?.toMutableList() ?: return false
+        var tracks: MutableList<AudioTrack> =
+            channelHash[guild.idLong]!!.tracks
+                .map { it.track }
+                .toMutableList()
         log.info("trackHash - tracks.size : ${tracks?.size}")
 
         val musicManager = getMusicManager(guild).scheduler
@@ -203,7 +207,7 @@ class PlayerManager {
 
     fun stop(
         channel: TextChannel,
-        stopBy: String = "",
+        stopBy: String = ""
     ) {
         log.info("resetTrack")
         val guild = channel.guild
@@ -214,17 +218,19 @@ class PlayerManager {
         channel.sendEmbed(
             title = "재생이 종료되었습니다.",
             description = "${
-                if (stopBy.isNotBlank()) {
-                    "${stopBy}에 의해 종료되었습니다."
-                } else ""
+            if (stopBy.isNotBlank()) {
+                "${stopBy}에 의해 종료되었습니다."
+            } else {
+                ""
+            }
             }\n재생목록을 다시 추가해주세요.",
-            author = TEXT_CHANNEL_NAME,
+            author = TEXT_CHANNEL_NAME
         )
         Thread {
-            Thread.sleep(60 * 1000 ) // 60 초 뒤에 나가게 함
+            Thread.sleep(60 * 1000) // 60 초 뒤에 나가게 함
             // 이때 만약 다른 사람이 노래를 추가했다면 나가지 않음
             // 종료되고 아무것도 추가 안 했을때 size를 확인해봐야 함
-            if(channelInfo.tracks.size > 0) {
+            if (channelInfo.tracks.size > 0) {
                 log.info("다른 사람이 노래를 추가했으므로 나가지 않음")
                 return@Thread
             }
@@ -260,7 +266,7 @@ class PlayerManager {
         textChannel.sendEmbed(
             title = "이전 곡으로 돌아갑니다.",
             description = "이전 곡으로 돌아갑니다.",
-            author = TEXT_CHANNEL_NAME,
+            author = TEXT_CHANNEL_NAME
         )
     }
 
@@ -270,8 +276,11 @@ class PlayerManager {
         val musicManager = getMusicManager(guild)
         val scheduler = musicManager.scheduler
         scheduler.let {
-            if (it.isRepeat()) it.doNotRepeat()
-            else it.doRepeat()
+            if (it.isRepeat()) {
+                it.doNotRepeat()
+            } else {
+                it.doRepeat()
+            }
         }
     }
 
