@@ -29,15 +29,15 @@ class TrackScheduler(
 
     init {
         player.volume = VOLUME
+    }
 
-        // Thread 하나 생성해서
-        // music에 사용되는 매개변수를 1분 단위로 로깅
-//        Thread {
-//            while (true) {
-//                Thread.sleep(3000)
-//                log.info("player: ${player.toString()}, pause: $pause, repeat: $repeat, lastTrack: $lastTrack, queue: $queue")
-//            }
-//        }.start()
+    fun reset() {
+        queue.clear()
+        lastTrack = null
+        pause = false
+        repeat = false
+        updateLastTrack(null)
+        player.stopTrack()
     }
 
     override fun onPlayerPause(player: AudioPlayer?) {

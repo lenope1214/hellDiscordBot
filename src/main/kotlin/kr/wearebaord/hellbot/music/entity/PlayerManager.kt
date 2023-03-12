@@ -213,8 +213,10 @@ class PlayerManager {
         val guild = channel.guild
         val channelInfo = channelHash[guild.idLong]!!
         val musicManager = getMusicManager(guild).scheduler
-        musicManager.updateLastTrack(null)
+
+        musicManager.reset()
         channelInfo.reset()
+
         channel.sendEmbed(
             title = "재생이 종료되었습니다.",
             description = "${
@@ -226,6 +228,7 @@ class PlayerManager {
             }\n재생목록을 다시 추가해주세요.",
             author = TEXT_CHANNEL_NAME
         )
+
         Thread {
             Thread.sleep(60 * 1000) // 60 초 뒤에 나가게 함
             // 이때 만약 다른 사람이 노래를 추가했다면 나가지 않음
@@ -302,3 +305,4 @@ class PlayerManager {
         }
     }
 }
+
