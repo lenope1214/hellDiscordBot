@@ -70,7 +70,7 @@ object MusicListener : ListenerAdapter() {
                     it.toInt()
                 }
 
-                PlayerManager.INSTANCE.jumpTo(event.channel as TextChannel, values[0])
+                PlayerManager.getInstance().jumpTo(event.channel as TextChannel, values[0])
             }
         }
     }
@@ -92,7 +92,7 @@ object MusicListener : ListenerAdapter() {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                PlayerManager.INSTANCE.resume(event.channel as TextChannel)
+                PlayerManager.getInstance().resume(event.channel as TextChannel)
             }
             "pauseButton" -> {
                 try {
@@ -106,16 +106,16 @@ object MusicListener : ListenerAdapter() {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                PlayerManager.INSTANCE.pause(event.channel as TextChannel)
+                PlayerManager.getInstance().pause(event.channel as TextChannel)
             }
             "stopButton" -> {
-                PlayerManager.INSTANCE.stop(event.channel as TextChannel, event.member!!.effectiveName)
+                PlayerManager.getInstance().stop(event.channel as TextChannel, event.member!!.effectiveName)
             }
             "skipButton" -> {
-                val isPlayNextTrack = PlayerManager.INSTANCE.next(event.channel as TextChannel)
+                val isPlayNextTrack = PlayerManager.getInstance().next(event.channel as TextChannel)
             }
             "prevButton" -> {
-                PlayerManager.INSTANCE.prevTrack(event.channel as TextChannel)
+                PlayerManager.getInstance().prevTrack(event.channel as TextChannel)
             }
             "repeatButton" -> {
                 log.info("반복버튼 눌림")
@@ -132,7 +132,7 @@ object MusicListener : ListenerAdapter() {
                     e.printStackTrace()
                 }
                 log.info("process repeat")
-                PlayerManager.INSTANCE.repeat(event.channel as TextChannel)
+                PlayerManager.getInstance().repeat(event.channel as TextChannel)
                 log.info("end process repeat")
             }
         }

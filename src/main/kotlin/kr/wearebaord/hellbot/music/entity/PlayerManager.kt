@@ -23,7 +23,15 @@ class PlayerManager {
     private val log = LoggerFactory.getLogger(PlayerManager::class.java)
     private val musicManagers: HashMap<Long, GuildMusicManager> = HashMap()
     private val audioPlayerManager: AudioPlayerManager = DefaultAudioPlayerManager()
-    var ChannelHash: HashMap<Long, ChannelInfo> = HashMap()
+    private var channelHash: HashMap<Long, ChannelInfo> = HashMap()
+
+    fun getChannelHash(idLong: Long): ChannelInfo{
+        var channelInfo = channelHash[idLong]
+        if(channelInfo == null){
+            channelInfo = ChannelInfo()
+        }
+        return channelInfo
+    }
 
     init {
         AudioSourceManagers.registerRemoteSources(this.audioPlayerManager)
@@ -91,16 +99,16 @@ class PlayerManager {
     }
 
     fun sendMessage(channel: TextChannel) {
-        if(ChannelHash[channel.guild.idLong]!!.tracks.size == 0) return
+        if(channelHash[channel.guild.idLong]!!.tracks.size == 0) return
         // track의 첫 번째 정보를 가져와 embed를 만든다
-        val firstTrack = ChannelHash[channel.guild.idLong]!!.tracks.first()!!.track!!
+        val firstTrack = channelHash[channel.guild.idLong]!!.tracks.first()!!.track!!
 
         val guild = channel.guild
         val musicManager = getMusicManager(guild).scheduler
         val pause = musicManager.isPause()
         val repeat = musicManager.isRepeat()
 
-        ChannelHash.forEach { log.info("trackHash - key: ${it.key}, value: ${it.value}") }
+        channelHash.forEach { log.info("trackHash - key: ${it.key}, value: ${it.value.embedMessageId}") }
 
         // 만약 마지막으로 보낸 embed가 있으면 수정하는 방식으로 진행한다.
         val latestMessageId = channel.latestMessageId
@@ -113,7 +121,7 @@ class PlayerManager {
             author = firstTrack.info.author,
             duration = firstTrack.duration,
             youtubeIdentity = firstTrack.identifier,
-            playTrackInfoList = ChannelHash[channel.guild.idLong]!!.tracks,
+            playTrackInfoList = channelHash[channel.guild.idLong]!!.tracks,
             isPause = pause,
             isRepeat = repeat,
         )
@@ -123,11 +131,11 @@ class PlayerManager {
         val guild = channel.guild
 
         // 없으면 새로운 리스트를 만들어 사용할 수 있게 한다.
-        if (ChannelHash[guild.idLong] == null) {
-            ChannelHash[guild.idLong] = ChannelInfo()
+        if (channelHash[guild.idLong] == null) {
+            channelHash[guild.idLong] = ChannelInfo()
         }
 
-        ChannelHash[guild.idLong]!!.tracks.add(
+        channelHash[guild.idLong]!!.tracks.add(
             PlayTrackInfo(
             track = track,
             addedBy = addedBy,
@@ -144,7 +152,7 @@ class PlayerManager {
     fun next(channel: TextChannel): Boolean {
 
         val guild = channel.guild
-        var tracks: MutableList<AudioTrack> = ChannelHash[guild.idLong]!!.tracks.map { it.track }?.toMutableList() ?: return false
+        var tracks: MutableList<AudioTrack> = channelHash[guild.idLong]!!.tracks.map { it.track }?.toMutableList() ?: return false
         log.info("trackHash - tracks.size : ${tracks?.size}")
 
         val musicManager = getMusicManager(guild).scheduler
@@ -170,7 +178,7 @@ class PlayerManager {
             }
 
             // 큐의 맨 처음 트랙정보 제거
-            ChannelHash[guild.idLong]!!.tracks = ChannelHash[guild.idLong]!!.tracks.drop(1).toMutableList()
+            channelHash[guild.idLong]!!.tracks = channelHash[guild.idLong]!!.tracks.drop(1).toMutableList()
             sendMessage(channel)
             true
         }
@@ -178,7 +186,7 @@ class PlayerManager {
 
     fun jumpTo(channel: TextChannel, index: Int) {
         val guild = channel.guild
-        val tracks = ChannelHash[guild.idLong]!!.tracks.map { it.track }
+        val tracks = channelHash[guild.idLong]!!.tracks.map { it.track }
         val musicManager = getMusicManager(guild).scheduler
         musicManager.jumpTrack(index)
         // 1개 남았을 때도 스킵되면 없으므로 종료되어야 함.
@@ -187,8 +195,8 @@ class PlayerManager {
             stop(channel)
         } else {
             // index만큼 제거 -> jump와 같음
-            ChannelHash[guild.idLong]!!.tracks = ChannelHash[guild.idLong]!!.tracks.drop(index).toMutableList()
-            println("tracks.size : ${ChannelHash[guild.idLong]!!.tracks.size}")
+            channelHash[guild.idLong]!!.tracks = channelHash[guild.idLong]!!.tracks.drop(index).toMutableList()
+            println("tracks.size : ${channelHash[guild.idLong]!!.tracks.size}")
             sendMessage(channel)
         }
     }
@@ -199,9 +207,10 @@ class PlayerManager {
     ) {
         log.info("resetTrack")
         val guild = channel.guild
-        ChannelHash[guild.idLong]!!.tracks = mutableListOf()
+        val channelInfo = channelHash[guild.idLong]!!
         val musicManager = getMusicManager(guild).scheduler
         musicManager.updateLastTrack(null)
+        channelInfo.reset()
         channel.sendEmbed(
             title = "재생이 종료되었습니다.",
             description = "${
@@ -215,7 +224,7 @@ class PlayerManager {
             Thread.sleep(60 * 1000 ) // 60 초 뒤에 나가게 함
             // 이때 만약 다른 사람이 노래를 추가했다면 나가지 않음
             // 종료되고 아무것도 추가 안 했을때 size를 확인해봐야 함
-            if(ChannelHash[guild.idLong]!!.tracks.size > 0) {
+            if(channelInfo.tracks.size > 0) {
                 log.info("다른 사람이 노래를 추가했으므로 나가지 않음")
                 return@Thread
             }
@@ -273,10 +282,14 @@ class PlayerManager {
     companion object {
         // PlayerManager to SingleTon
 
-        var INSTANCE: PlayerManager = PlayerManager()
-            get(){
-                if(field == null) field = PlayerManager()
-                return field
+        private var INSTANCE: PlayerManager? = null
+
+        fun getInstance(): PlayerManager {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: PlayerManager().also {
+                    INSTANCE = it
+                }
             }
+        }
     }
 }

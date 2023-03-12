@@ -64,7 +64,7 @@ object DefaultListener : ListenerAdapter() {
                     val textChannel = leftChannel.guild.textChannels.find {
                         it.name == TEXT_CHANNEL_NAME
                     }
-                    PlayerManager.INSTANCE.leftChannel(
+                    PlayerManager.getInstance().leftChannel(
                         guild = leftChannel.guild,
                         channel = textChannel,
                     )

@@ -43,7 +43,7 @@ object SkipCommand : CommandInterface{
         }
 
         // 다음 노래 재생
-        PlayerManager.INSTANCE.next(channel as TextChannel)
+        PlayerManager.getInstance().next(channel as TextChannel)
     }
 
     override fun onHelp(): String {

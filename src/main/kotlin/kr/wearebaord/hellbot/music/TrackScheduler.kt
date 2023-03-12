@@ -25,7 +25,7 @@ class TrackScheduler(
     private val log = LoggerFactory.getLogger(TrackScheduler::class.java)
 
     init {
-        player.volume = VOLUME!!
+        player.volume = VOLUME
 
         // Thread 하나 생성해서
         // music에 사용되는 매개변수를 1분 단위로 로깅
@@ -65,7 +65,7 @@ class TrackScheduler(
             FINISHED, LOAD_FAILED -> {
                 if (track != null) {
                     val channel = track.userData as TextChannel
-                    PlayerManager.INSTANCE.next(channel)
+                    PlayerManager.getInstance().next(channel)
                 }
                 return
             }

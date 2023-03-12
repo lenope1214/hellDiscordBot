@@ -44,7 +44,7 @@ object StopCommand : CommandInterface {
             return
         }
 
-        PlayerManager.INSTANCE.stop(channel as TextChannel, event.member!!.effectiveName)
+        PlayerManager.getInstance().stop(channel as TextChannel, event.member!!.effectiveName)
         self.guild.audioManager.closeAudioConnection()
     }
 

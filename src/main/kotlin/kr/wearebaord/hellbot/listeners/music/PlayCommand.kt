@@ -57,8 +57,9 @@ object PlayCommand : CommandInterface {
             if (!selfVoiceState!!.inAudioChannel()) {
                 joinVoiceChannelBot(event.channel, event.member!!, event.guild!!)
             }
-            PlayerManager.INSTANCE
+            PlayerManager.getInstance()
                 .loadAndPlay(channel as TextChannel, url, event.member!!)
+            event.message.delete().queue()
         } catch (e: Exception) {
             e.printStackTrace()
             log.error("error: ${e.message}")

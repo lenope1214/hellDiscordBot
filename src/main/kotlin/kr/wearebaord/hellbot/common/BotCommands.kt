@@ -8,6 +8,7 @@ import kr.wearebaord.hellbot.SHOW_BUTTONS
 import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
 import kr.wearebaord.hellbot.exception.InvalidTextChannel
 import kr.wearebaord.hellbot.music.PlayTrackInfo
+import kr.wearebaord.hellbot.music.entity.PlayerManager
 import kr.wearebaord.hellbot.music.enums.ComponentTypes
 import kr.wearebaord.hellbot.music.enums.EmojiValue
 import kr.wearebaord.hellbot.music.status.getRepeatEmoji
@@ -21,9 +22,12 @@ import net.dv8tion.jda.api.entities.MessageEmbed.Field
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.interactions.components.ActionComponent
+import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.ItemComponent
+import net.dv8tion.jda.api.interactions.components.LayoutComponent
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction
+import net.dv8tion.jda.api.requests.restaction.MessageEditAction
 import org.slf4j.LoggerFactory
 import java.awt.Color
 import java.time.OffsetDateTime
@@ -182,9 +186,9 @@ fun TextChannel.deleteAllMessages() {
             .thenApply {
                 it.forEach { m ->
                     // 삭제요청한 시간보다 5초 이전에 만들어진 데이터만 삭제
-                    if(m.timeCreated.isBefore(deleteTime)) {
+                    if (m.timeCreated.isBefore(deleteTime)) {
                         // 공지가 포함되면 삭제하지 않는다.
-                        if(m.contentRaw.contains("[공지]").not()) m.delete().queue()
+                        if (m.contentRaw.contains("[공지]").not()) m.delete().queue()
                     }
                 }
             }
@@ -272,8 +276,6 @@ fun TextChannel.sendYoutubeEmbed(
         }
     )
 
-
-    log.info("youtubeIdentity : $youtubeIdentity")
     var actionRowsMap: Map<ComponentTypes, List<ActionComponent>> = mapOf(
         ComponentTypes.STRING_MENU to listOf(menu),
     )
@@ -302,7 +304,6 @@ fun TextChannel.sendYoutubeEmbed(
         actionRowsMap = actionRowsMap,
         footerText = footerText,
         footerIconUrl = footerIconUrl,
-        isUpdate = playTrackInfoList.size > 1,
     )
 }
 
@@ -316,7 +317,6 @@ fun TextChannel.sendEmbed(
     actionRowsMap: Map<ComponentTypes, List<ItemComponent>> = mapOf(),
     footerText: String? = null,
     footerIconUrl: String? = null,
-    isUpdate: Boolean = false,
 ) {
     // 메세지 임베드 값 생성
     val builder = EmbedBuilder()
@@ -370,9 +370,24 @@ private fun addActionRows(
     sendMessageEmbeds: MessageCreateAction
 ) {
     if (actionRowsMap.isNotEmpty()) {
-        actionRowsMap.forEach { (key, value) ->
+        actionRowsMap.forEach { (_, value) ->
+            log.info("addActionRows : $value")
             sendMessageEmbeds
                 .addActionRow(value)
         }
+    }
+}
+
+private fun updateActionRows(
+    actionRowsMap: Map<ComponentTypes, List<ItemComponent>>,
+    sendMessageEmbeds: MessageEditAction,
+) {
+    if (actionRowsMap.isNotEmpty()) {
+        var components: List<ItemComponent> = mutableListOf()
+        actionRowsMap.forEach { (_, value) ->
+            log.info("updateActionRows : $value")
+            components = components.plus(value)
+        }
+        sendMessageEmbeds.setActionRow(components)
     }
 }
