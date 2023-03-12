@@ -20,13 +20,14 @@ import java.time.format.DateTimeFormatter
 import kotlin.system.exitProcess
 
 var PROFILE: EnvTypes = EnvTypes.PROD
-var JDA: net.dv8tion.jda.api.JDA? = null
-var BOT_VERSION: String = ""
-var TOKEN: String = ""
-var BOT_ID: String = ""
-var TEXT_CHANNEL_NAME: String = ""
-var PREFIX: String = ""
-var OWNER_ID: String = ""
+lateinit var JDA: net.dv8tion.jda.api.JDA
+lateinit var BOT_VERSION: String
+lateinit var TOKEN: String
+lateinit var BOT_ID: String
+lateinit var TEXT_CHANNEL_NAME: String
+lateinit var PREFIX: String
+lateinit var OWNER_ID: String
+lateinit var NOTICE_FLAG: String
 var VOLUME: Int = 50
 var SHOW_BUTTONS: Boolean = false
 
@@ -61,12 +62,7 @@ suspend fun main(vararg args: String) {
     JDA = configureMemoryUsage(jdaBuilder)
         .setActivity(
             Activity.playing(
-                "열정을 다해 놀리기를\n${
-                    LocalDateTime.now().format(
-                        // HH:mm
-                        java.time.format.DateTimeFormatter.ofPattern("HH:mm")
-                    )
-                }부터"
+                "버전 : ${BOT_VERSION} 도움말 : ${PREFIX}도움말"
             )
         )
         .enableIntents(
@@ -128,6 +124,7 @@ fun initEnvironment(profile: EnvTypes) {
     OWNER_ID = Config.getEnvByKey("owner_id") ?: "0"
     VOLUME = (Config.getEnvByKey("volume") ?: "10").toInt()
     SHOW_BUTTONS = (Config.getEnvByKey("show_buttons") ?: "true").toBoolean()
+    NOTICE_FLAG = Config.getEnvByKey("notice_flag") ?: "[공지]"
 }
 
 fun configureMemoryUsage(builder: JDABuilder): JDABuilder {

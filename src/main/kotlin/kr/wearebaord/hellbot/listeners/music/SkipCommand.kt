@@ -1,12 +1,10 @@
 package kr.wearebaord.hellbot.listeners.music
 
-import kr.wearebaord.hellbot.common.isValidContentRaw
 import kr.wearebaord.hellbot.common.isValidTextChannel
 import kr.wearebaord.hellbot.exception.InvalidTextChannel
-import kr.wearebaord.hellbot.music.PlayerManager
+import kr.wearebaord.hellbot.music.entity.PlayerManager
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 
 object SkipCommand : CommandInterface{
@@ -45,7 +43,7 @@ object SkipCommand : CommandInterface{
         }
 
         // 다음 노래 재생
-        PlayerManager.INSTANCE.next(channel as TextChannel)
+        PlayerManager.getInstance().next(channel as TextChannel)
     }
 
     override fun onHelp(): String {

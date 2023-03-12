@@ -4,7 +4,7 @@ import kr.wearebaord.hellbot.common.*
 import kr.wearebaord.hellbot.exception.InvalidTextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.slf4j.LoggerFactory
-import kr.wearebaord.hellbot.music.PlayerManager
+import kr.wearebaord.hellbot.music.entity.PlayerManager
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 
 object PlayCommand : CommandInterface {
@@ -57,8 +57,9 @@ object PlayCommand : CommandInterface {
             if (!selfVoiceState!!.inAudioChannel()) {
                 joinVoiceChannelBot(event.channel, event.member!!, event.guild!!)
             }
-            PlayerManager.INSTANCE
+            PlayerManager.getInstance()
                 .loadAndPlay(channel as TextChannel, url, event.member!!)
+            event.message.delete().queue()
         } catch (e: Exception) {
             e.printStackTrace()
             log.error("error: ${e.message}")

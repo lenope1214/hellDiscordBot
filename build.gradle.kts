@@ -5,12 +5,19 @@ plugins {
 
     kotlin("jvm") version kotlinVersion
     id("java")
+
+    id("org.jlleitschuh.gradle.ktlint") version "11.3.1" // kotlin lint
+    id("io.gitlab.arturbosch.detekt") version "1.22.0" // detekt lint
 //    application
 }
 
-//application {
+val reportMerge by tasks.registering(io.gitlab.arturbosch.detekt.report.ReportMergeTask::class) {
+    output.set(rootProject.buildDir.resolve("reports/detekt/detekt.sarif"))
+}
+
+// application {
 //    mainClass.set("kr.wearebaord.hellbot.Botkt")
-//}
+// }
 
 group = "kr.weareboard"
 version = "1.0-SNAPSHOT"
@@ -28,7 +35,7 @@ dependencies {
     val jdaVersion = "5.0.0-beta.4"
     val dotenvVersion = "6.4.1"
 
-    api("net.dv8tion:JDA:${jdaVersion}")
+    api("net.dv8tion:JDA:$jdaVersion")
 
     // JDA KTX https://github.com/MinnDevelopment/jda-ktx/tags 버전확인
     api("com.github.minndevelopment:jda-ktx:0.10.0-beta.1")
@@ -41,15 +48,24 @@ dependencies {
     api("com.github.walkyst:lavaplayer-fork:1.4.0") // lavaplayer - fork project
 
     // .env 사용을 위해
-    implementation("io.github.cdimascio:dotenv-kotlin:${dotenvVersion}")
+    implementation("io.github.cdimascio:dotenv-kotlin:$dotenvVersion")
 
     // kotlin
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     api(kotlin("stdlib-jdk8"))
 
     // test
-    testApi("junit:junit:${junitVersion}")
-    testApi("org.jetbrains.kotlin:kotlin-test-junit:${kotlinVersion}")
+    testApi("junit:junit:$junitVersion")
+    testApi("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
+
+    // lint
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.19.0")
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    config = files("$rootDir/config/detekt.yml")
 }
 
 tasks.withType<KotlinCompile> {

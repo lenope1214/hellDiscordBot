@@ -8,8 +8,10 @@ import kr.wearebaord.hellbot.common.parseCommand
 import kr.wearebaord.hellbot.listeners.music.PlayCommand
 import kr.wearebaord.hellbot.listeners.music.SkipCommand
 import kr.wearebaord.hellbot.listeners.music.StopCommand
-import kr.wearebaord.hellbot.music.PlayerManager
+import kr.wearebaord.hellbot.music.entity.PlayerManager
 import kr.wearebaord.hellbot.music.enums.EmojiValue
+import kr.wearebaord.hellbot.music.status.getRepeatEmoji
+import kr.wearebaord.hellbot.music.status.getRepeatText
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
@@ -68,7 +70,7 @@ object MusicListener : ListenerAdapter() {
                     it.toInt()
                 }
 
-                PlayerManager.INSTANCE.jumpTo(event.channel as TextChannel, values[0])
+                PlayerManager.getInstance().jumpTo(event.channel as TextChannel, values[0])
             }
         }
     }
@@ -90,7 +92,7 @@ object MusicListener : ListenerAdapter() {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                PlayerManager.INSTANCE.resume(event.channel as TextChannel)
+                PlayerManager.getInstance().resume(event.channel as TextChannel)
             }
             "pauseButton" -> {
                 try {
@@ -104,16 +106,16 @@ object MusicListener : ListenerAdapter() {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                PlayerManager.INSTANCE.pause(event.channel as TextChannel)
+                PlayerManager.getInstance().pause(event.channel as TextChannel)
             }
             "stopButton" -> {
-                PlayerManager.INSTANCE.stop(event.channel as TextChannel, event.member!!.effectiveName)
+                PlayerManager.getInstance().stop(event.channel as TextChannel, event.member!!.effectiveName)
             }
             "skipButton" -> {
-                val isPlayNextTrack = PlayerManager.INSTANCE.next(event.channel as TextChannel)
+                val isPlayNextTrack = PlayerManager.getInstance().next(event.channel as TextChannel)
             }
             "prevButton" -> {
-                PlayerManager.INSTANCE.prevTrack(event.channel as TextChannel)
+                PlayerManager.getInstance().prevTrack(event.channel as TextChannel)
             }
             "repeatButton" -> {
                 log.info("반복버튼 눌림")
@@ -123,14 +125,14 @@ object MusicListener : ListenerAdapter() {
                     // 기존 버튼 수정
                     event.editButton(
                         event.component
-                            .withLabel(if (isRepeat) "반복해제" else "반복")
-                            .withEmoji(if (isRepeat) EmojiValue.EXIT.fromUnicode() else EmojiValue.INFINITY.fromUnicode())
+                            .withLabel(getRepeatText(isRepeat))
+                            .withEmoji(getRepeatEmoji(isRepeat))
                     ).queue()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
                 log.info("process repeat")
-                PlayerManager.INSTANCE.repeat(event.channel as TextChannel)
+                PlayerManager.getInstance().repeat(event.channel as TextChannel)
                 log.info("end process repeat")
             }
         }
