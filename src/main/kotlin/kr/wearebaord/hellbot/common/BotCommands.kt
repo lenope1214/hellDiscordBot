@@ -3,6 +3,8 @@ package kr.wearebaord.hellbot.common
 import dev.minn.jda.ktx.interactions.components.SelectOption
 import dev.minn.jda.ktx.interactions.components.StringSelectMenu
 import dev.minn.jda.ktx.interactions.components.button
+import dev.minn.jda.ktx.messages.MessageEditBuilder
+import dev.minn.jda.ktx.messages.editMessage
 import kr.wearebaord.hellbot.PREFIX
 import kr.wearebaord.hellbot.SHOW_BUTTONS
 import kr.wearebaord.hellbot.TEXT_CHANNEL_NAME
@@ -337,30 +339,55 @@ fun TextChannel.sendEmbed(
     val sendMessageEmbeds = this
         .sendMessageEmbeds(messageEmbed)
 
-
-    addActionRows(actionRowsMap, sendMessageEmbeds)
-
+    log.info("보낼 메세지 embed 정보 : ${messageEmbed.fields}")
 
 
     // 만약, 채널에 기존에 보낸 embed가 존재한다면 수정하는 방식으로 한다.
-    if(isUpdate){
+    val channelInfo = PlayerManager.getInstance().getChannelHash(this.guild.idLong)
+    log.info("channelInfo : $channelInfo")
+
+    val embedMessageId = channelInfo.embedMessageId
+    log.info("embedMessageId : $embedMessageId")
+
+    if (channelInfo != null && embedMessageId > 0L) {
         log.info("기존 메세지 수정")
         // edit last embed
-        val messageChannel: MessageChannel = this
-        val lastMessage = messageChannel.latestMessageId.let {
-            messageChannel.edit
+
+        var components: List<List<ItemComponent>> = mutableListOf()
+
+        actionRowsMap.forEach { (_, value) ->
+            log.info("updateActionRows : $value")
+            components = components.plus(listOf(value))
         }
-        val lastEmbeds = lastMessage.embeds
-        log.info("lastEmbeds : $lastEmbeds")
-        lastMessage.editMessageEmbeds(messageEmbed).queue()
+
+        this.editMessage(
+            id= embedMessageId.toString(),
+            embeds = listOf(messageEmbed),
+            components = components as List<LayoutComponent>,
+        ).queue {
+            log.info("기존 메세지 수정 완료")
+        }
+
+//        val editMessageEmbedsById = this.editMessageEmbedsById(embedMessageId, messageEmbed)
+//        updateActionRows(actionRowsMap, editMessageEmbedsById)
+//        editMessageEmbedsById.queue {
+//            log.info("기존 메세지 수정 완료")
+//        }
+        return
     }
 
     // 기존에 보낸 embed가 없다면 채널의 기존 메세지 삭제 후
-    this.deleteAllMessages().let{
+    this.deleteAllMessages().let {
         log.info("기존 메세지 삭제 후 새로운 메세지 생성")
         // 새로운 메세지 생성
+        addActionRows(actionRowsMap, sendMessageEmbeds)
+
         sendMessageEmbeds
-            .queue()
+            .queue {
+                // 마지막으로 보낸 embed 정보 업데이트
+                log.info("마지막으로 보낸 embed 정보 업데이트, idLong : ${this.idLong}")
+                channelInfo.updateEmbedId(it.idLong)
+            }
 
     }
 }
@@ -382,12 +409,8 @@ private fun updateActionRows(
     actionRowsMap: Map<ComponentTypes, List<ItemComponent>>,
     sendMessageEmbeds: MessageEditAction,
 ) {
-    if (actionRowsMap.isNotEmpty()) {
-        var components: List<ItemComponent> = mutableListOf()
-        actionRowsMap.forEach { (_, value) ->
-            log.info("updateActionRows : $value")
-            components = components.plus(value)
-        }
-        sendMessageEmbeds.setActionRow(components)
-    }
+//    if (actionRowsMap.isNotEmpty()) {
+//
+//        sendMessageEmbeds.setActionRow(components)
+//    }
 }
