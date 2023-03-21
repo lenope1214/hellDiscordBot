@@ -1,0 +1,22 @@
+spring:
+    datasource:
+        url: jdbc:mariadb://43.200.154.185:58806/hellbot?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&userSSL=false&zeroDateTimeBehavior=convertToNull&validationQuery="select 1"
+        username: develope
+        password: leehj124!$
+        driver-class-name: org.mariadb.jdbc.Driver
+    jpa:
+        hibernate:
+            ddl-auto: create-drop
+        properties:
+            hibernate:
+                format_sql: true
+                show_sql: false
+
+server:
+    port: 40100
+
+logging:
+    level:
+        org.springframework.web: DEBUG
+        org.hibernate.SQL: DEBUG
+        org.hibernate.type: TRACE

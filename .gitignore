@@ -4,3 +4,6 @@
 
 hellbot.jar
 .env
+bot/build/
+
+domain/build/

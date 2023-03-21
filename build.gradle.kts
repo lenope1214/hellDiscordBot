@@ -2,69 +2,73 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     val kotlinVersion: String by System.getProperties() // 1.8.10
+    val springBootVersion: String by System.getProperties() // 3.0.4
 
-    kotlin("jvm") version kotlinVersion
     id("java")
-
+    id("org.springframework.boot") version springBootVersion apply false
+    id("io.spring.dependency-management") version "1.1.0" apply false
     id("org.jlleitschuh.gradle.ktlint") version "11.3.1" // kotlin lint
-//    application
-}
 
-// application {
-//    mainClass.set("kr.wearebaord.hellbot.Botkt")
-// }
+    kotlin("jvm") version kotlinVersion apply false                   // 1.8.10
+    kotlin("kapt") version kotlinVersion apply false                  // 1.8.10
+    kotlin("plugin.spring") version kotlinVersion apply false         // 1.8.10
+    kotlin("plugin.jpa") version kotlinVersion apply false            // 1.8.10
+}
 
 group = "kr.weareboard"
 version = "1.0-SNAPSHOT"
 
-repositories {
-    mavenLocal() // caching optimization
-    mavenCentral() // everything else
-    maven("https://m2.dv8tion.net/releases") // jda
-    maven("https://jitpack.io") // jda-reactor and slash commands
-}
-
-dependencies {
-    val kotlinVersion = "1.8.10"
-    val junitVersion = "4.13.2"
-    val jdaVersion = "5.0.0-beta.4"
-    val dotenvVersion = "6.4.1"
-
-    api("net.dv8tion:JDA:$jdaVersion")
-
-    // JDA KTX https://github.com/MinnDevelopment/jda-ktx/tags 버전확인
-    api("com.github.minndevelopment:jda-ktx:0.10.0-beta.1")
-    api("ch.qos.logback:logback-classic:1.2.8")
-    api("com.squareup.okhttp3:okhttp:4.9.3")
-
-    // YOUTUBE MUSIC SUPPORT https://github.com/sedmelluq/lavaplayer
-
-//    api("com.sedmelluq:lavaplayer:1.3.77")
-    api("com.github.walkyst:lavaplayer-fork:1.4.0") // lavaplayer - fork project
-
-    // .env 사용을 위해
-    implementation("io.github.cdimascio:dotenv-kotlin:$dotenvVersion")
-
-    // kotlin
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
-    api(kotlin("stdlib-jdk8"))
-
-    // test
-    testApi("junit:junit:$junitVersion")
-    testApi("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
-}
-
-// 실행 가능하게 하도록 설정
-tasks.jar {
-    manifest {
-        attributes["Main-Class"] = "kr.wearebaord.hellbot.HellBotKt"
+allprojects {
+    repositories {
+        mavenCentral()
     }
-    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
 
-    archiveFileName.set("hellbot.jar")
+subprojects {
+
+    apply {
+        plugin("io.spring.dependency-management")
+        plugin("org.springframework.boot")
+
+        plugin("kotlin")
+        plugin("org.jlleitschuh.gradle.ktlint")
+        plugin("org.jetbrains.kotlin.jvm")
+        plugin("org.jetbrains.kotlin.plugin.spring")
+    }
+
+    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        verbose.set(true)
+        disabledRules.set(
+            setOf(
+                "import-ordering",
+                "no-wildcard-imports",
+                "final-newline",
+                "insert_final_newline",
+                "max_line_length"
+            )
+        )
+    }
+
+    tasks.withType<KotlinCompile> {
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+            jvmTarget = "17"
+        }
+    }
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+    }
+
+    // plain jar 기본 true
+    tasks.withType<Jar> {
+        enabled = true
+        // build 중에 중복되는 파일이 생성될경우 에러가 발생한다. 그것을 방지하기 위한 설정이다.
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    // BootJar 기본 false, 프로젝트 빌드 후 실행해야 하는 모듈이면 BootJar true 해줘야 함.
+    tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
+        enabled = false
+    }
 }
