@@ -1,22 +1,44 @@
 package kr.wearebaord.hellbot.listeners
 
+import kr.wearebaord.hellbot.common.BotCommands
 import kr.wearebaord.hellbot.common.isValidContentRaw
 import kr.wearebaord.hellbot.common.joinVoiceChannelBot
-import kr.wearebaord.hellbot.common.leaveBot
-import kr.weareboard.runner.OWNER_ID
-import kr.weareboard.runner.PREFIX
+import kr.weareboard.main.OWNER_ID
+import kr.weareboard.main.PREFIX
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
-class CommandListener : ListenerAdapter() {
+@Component
+class CommandListener(
+    private val botCommands: BotCommands,
+) : ListenerAdapter() {
     val log = LoggerFactory.getLogger(CommandListener::class.java)
 
     override fun onReady(event: ReadyEvent) {
         log.info("Logged in as ${event.jda.selfUser.name}")
+    }
+
+    fun leaveBot(guild: Guild, channel: TextChannel) {
+        // 봇이 음성채널에 있다면 나가게 한다
+        val audioManager = guild.audioManager
+        if (audioManager.isConnected) {
+            audioManager.closeAudioConnection()
+        }
+        botCommands.sendEmbed(
+            channel = channel,
+            title = "봇이 음성채널에서 나갔습니다.",
+            description = "봇이 음성채널에서 나갔습니다."
+        )
+//        channel?.sendEmbed(
+//            title = "봇이 음성채널에서 나갔습니다.",
+//            description = "봇이 음성채널에서 나갔습니다."
+//        )
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
@@ -49,10 +71,5 @@ class CommandListener : ListenerAdapter() {
                 leaveBot(event.guild, channel)
             }
         }
-
-//        // prefix + "join"이라면 음성 채널에 참여
-//        if (raw.equals(PREFIX + "join", ignoreCase = true)) {
-//
-//        }
     }
 }

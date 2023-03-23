@@ -1,6 +1,6 @@
 package kr.wearebaord.hellbot.listeners.music
 
-import kr.weareboard.runner.NOTICE_FLAG
+import kr.weareboard.main.NOTICE_FLAG
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
 interface CommandInterface {

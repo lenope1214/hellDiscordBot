@@ -13,12 +13,14 @@ import kr.wearebaord.hellbot.common.sendYoutubeEmbed
 import kr.wearebaord.hellbot.exception.MusicTitleIsNullException
 import kr.wearebaord.hellbot.music.GuildMusicManager
 import kr.wearebaord.hellbot.music.PlayTrackInfo
-import kr.weareboard.runner.TEXT_CHANNEL_NAME
+import kr.weareboard.main.TEXT_CHANNEL_NAME
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
+@Component
 class PlayerManager {
     private val log = LoggerFactory.getLogger(PlayerManager::class.java)
     private val musicManagers: HashMap<Long, GuildMusicManager> = HashMap()
@@ -220,17 +222,17 @@ class PlayerManager {
         channel.sendEmbed(
             title = "재생이 종료되었습니다.",
             description = "${
-            if (stopBy.isNotBlank()) {
-                "${stopBy}에 의해 종료되었습니다."
-            } else {
-                ""
-            }
+                if (stopBy.isNotBlank()) {
+                    "${stopBy}에 의해 종료되었습니다."
+                } else {
+                    ""
+                }
             }\n재생목록을 다시 추가해주세요.",
             author = TEXT_CHANNEL_NAME
         )
 
         Thread {
-            Thread.sleep(60 * 1000) // 60 초 뒤에 나가게 함
+            Thread.sleep(300 * 1000) // 60 초 뒤에 나가게 함
             // 이때 만약 다른 사람이 노래를 추가했다면 나가지 않음
             // 종료되고 아무것도 추가 안 했을때 size를 확인해봐야 함
             if (channelInfo.tracks.size > 0) {

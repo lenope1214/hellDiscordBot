@@ -9,9 +9,9 @@ import kr.wearebaord.hellbot.listeners.music.SkipCommand
 import kr.wearebaord.hellbot.listeners.music.StopCommand
 import kr.wearebaord.hellbot.music.status.getRepeatEmoji
 import kr.wearebaord.hellbot.music.status.getRepeatText
-import kr.weareboard.runner.BOT_VERSION
-import kr.weareboard.runner.NOTICE_FLAG
-import kr.weareboard.runner.TEXT_CHANNEL_NAME
+import kr.weareboard.main.BOT_VERSION
+import kr.weareboard.main.NOTICE_FLAG
+import kr.weareboard.main.TEXT_CHANNEL_NAME
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
@@ -41,7 +41,7 @@ object MusicListener : ListenerAdapter() {
 
         channels.forEach { channel ->
             log.info("채널 ${channel.name}에 메세지를 보냅니다.")
-            channel.sendMessage("헬파티봇의 현재 버전은 $BOT_VERSION 입니다.").queue()
+            channel.sendEmbed("${TEXT_CHANNEL_NAME}의 현재 버전은 $BOT_VERSION 입니다.")
             log.info("채널 ${channel.name}에 메세지를 보냈습니다.")
         }
     }

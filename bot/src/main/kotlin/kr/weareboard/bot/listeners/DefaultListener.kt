@@ -2,9 +2,9 @@ package kr.wearebaord.hellbot.listeners
 
 import kr.wearebaord.hellbot.domain.PlayerManager
 import kr.wearebaord.hellbot.utils.KoreanUtil
-import kr.weareboard.runner.BOT_ID
-import kr.weareboard.runner.TEXT_CHANNEL_NAME
-import kr.weareboard.runner.makeMessage
+import kr.weareboard.main.BOT_ID
+import kr.weareboard.main.TEXT_CHANNEL_NAME
+import kr.weareboard.main.makeMessage
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
