@@ -1,16 +1,36 @@
 package kr.weareboard.bot.services.textChannel
 
+import dev.minn.jda.ktx.interactions.components.SelectOption
+import dev.minn.jda.ktx.interactions.components.StringSelectMenu
+import dev.minn.jda.ktx.interactions.components.button
+import dev.minn.jda.ktx.messages.EmbedBuilder
+import dev.minn.jda.ktx.messages.InlineEmbed
+import kr.wearebaord.hellbot.common.convertMsToMmSs
+import kr.wearebaord.hellbot.domain.enums.ComponentTypes
+import kr.wearebaord.hellbot.domain.enums.EmojiValue
+import kr.wearebaord.hellbot.music.PlayTrackInfo
+import kr.wearebaord.hellbot.music.status.getRepeatEmoji
+import kr.wearebaord.hellbot.music.status.getRepeatText
+import kr.weareboard.main.SHOW_BUTTONS
+import net.dv8tion.jda.api.entities.MessageEmbed
+import net.dv8tion.jda.api.entities.MessageEmbed.Field
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
+import net.dv8tion.jda.api.interactions.components.ActionComponent
+import net.dv8tion.jda.api.interactions.components.ItemComponent
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.awt.Color
-import java.time.OffsetDateTime
-import java.util.concurrent.TimeUnit
 
 @Service
-class TextChannelImpl {
-    fun deleteAllMessages() {
+class TextChannelServiceImpl {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
+
+    fun deleteAllMessages(channel: MessageChannel) {
         try {
             val deleteTime = java.time.OffsetDateTime.now().minusSeconds(1)
-            this.iterableHistory.takeAsync(100).thenAccept {
+            channel.iterableHistory.takeAsync(100).thenAccept {
                 it.forEach { message ->
                     if (message.timeCreated.isBefore(deleteTime)) {
                         log.info("채널의 메세지 삭제 : ${message.contentDisplay}")
@@ -135,6 +155,7 @@ class TextChannelImpl {
     }
 
     fun sendEmbed(
+        channel: TextChannel,
         url: String = "",
         title: String = "",
         description: String = "이 노래를 재생합니다.",
@@ -146,35 +167,29 @@ class TextChannelImpl {
         footerIconUrl: String? = null
     ): String {
         // 메세지 임베드 값 생성
-        val builder = EmbedBuilder()
+        val messageEmbed = EmbedBuilder(
+            authorName = author,
+            title = title,
+            description = description,
+            thumbnail = thumbnail,
+            color = 0xFF7B96,
+            footerText = footerText,
+            footerIcon = footerIconUrl,
+            fields = fields,
+        )
 
-        fields.forEach {
-            builder.addField(it)
-        }
-
-        val messageEmbed = builder.setAuthor("HellBot")
-            .setTitle(title, url)
-            .setDescription(description)
-            .setAuthor(author)
-            .setThumbnail(thumbnail)
-            .setColor(Color(0xFF7B96))
-            .setFooter(footerText, footerIconUrl)
-            .build()
-
-        val sendMessageEmbeds = this
-            .sendMessageEmbeds(messageEmbed)
-
-        addActionRows(actionRowsMap, sendMessageEmbeds)
+        addActionRows(actionRowsMap, messageEmbed)
 
         var messageId = ""
         // 기존에 보낸 embed가 없다면 채널의 기존 메세지 삭제 후
-        this.deleteAllMessages().let {
-            log.info("기존 메세지 삭제 후 새로운 메세지 생성 [${this.guild.name}] : $title")
+        this.deleteAllMessages(channel).let {
+            log.info("기존 메세지 삭제 후 새로운 메세지 생성 [${channel.guild.name}] : $title")
             // 새로운 메세지 생성
-            sendMessageEmbeds
-                .queueAfter(1, java.util.concurrent.TimeUnit.SECONDS) {
+            messageEmbed.build().let { embed ->
+                channel.sendMessageEmbeds(embed).queue {
                     messageId = it.id
                 }
+            }
         }
 
         log.info("새로운 메세지 생성 완료 message id : ${messageId}")
@@ -183,7 +198,7 @@ class TextChannelImpl {
 
      fun addActionRows(
         actionRowsMap: Map<ComponentTypes, List<ItemComponent>>,
-        sendMessageEmbeds: MessageCreateAction
+        sendMessageEmbeds: InlineEmbed,
     ) {
         if (actionRowsMap.isNotEmpty()) {
             actionRowsMap.forEach { (_, value) ->

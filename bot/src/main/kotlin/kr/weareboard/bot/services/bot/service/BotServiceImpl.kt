@@ -1,8 +1,8 @@
 package kr.weareboard.bot.services.bot.service
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
-import kr.wearebaord.hellbot.common.sendEmbed
 import kr.weareboard.bot.services.bot.service.interfaces.BotService
+import kr.weareboard.bot.services.textChannel.TextChannelServiceImpl
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.GuildVoiceState
@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
-class BotServiceImpl : BotService {
+class BotServiceImpl(
+    private val textChannelImpl: TextChannelServiceImpl,
+) : BotService {
     private val log = LoggerFactory.getLogger(BotServiceImpl::class.java)
 
     override fun play(track: AudioTrack): Boolean {
@@ -93,7 +95,7 @@ class BotServiceImpl : BotService {
         if (audioManager.isConnected) {
             audioManager.closeAudioConnection()
         }
-        channel?.sendEmbed(
+        textChannelImpl.sendEmbed(
             title = "봇이 음성채널에서 나갔습니다.",
             description = "봇이 음성채널에서 나갔습니다."
         )
