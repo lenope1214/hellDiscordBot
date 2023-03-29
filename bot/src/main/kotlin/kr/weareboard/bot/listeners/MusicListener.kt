@@ -1,17 +1,21 @@
-package kr.wearebaord.hellbot.listeners
+package kr.weareboard.bot.listeners
 
-import kr.wearebaord.hellbot.common.*
-import kr.wearebaord.hellbot.domain.PlayerManager
-import kr.wearebaord.hellbot.domain.enums.EmojiValue
-import kr.wearebaord.hellbot.exception.InvalidTextChannel
-import kr.wearebaord.hellbot.listeners.music.PlayCommand
-import kr.wearebaord.hellbot.listeners.music.SkipCommand
-import kr.wearebaord.hellbot.listeners.music.StopCommand
-import kr.wearebaord.hellbot.music.status.getRepeatEmoji
-import kr.wearebaord.hellbot.music.status.getRepeatText
-import kr.weareboard.runner.BOT_VERSION
-import kr.weareboard.runner.NOTICE_FLAG
-import kr.weareboard.runner.TEXT_CHANNEL_NAME
+import kr.weareboard.bot.common.isCorrectPrefix
+import kr.weareboard.bot.common.isValidTextChannel
+import kr.weareboard.bot.common.parseCommand
+import kr.weareboard.bot.domain.PlayerManager
+import kr.weareboard.bot.domain.enums.EmojiValue
+import kr.weareboard.bot.exception.InvalidTextChannel
+import kr.weareboard.bot.listeners.music.PlayCommand
+import kr.weareboard.bot.listeners.music.SkipCommand
+import kr.weareboard.bot.listeners.music.StopCommand
+import kr.weareboard.bot.music.status.getRepeatEmoji
+import kr.weareboard.bot.music.status.getRepeatText
+import kr.weareboard.bot.service.interfaces.BotService
+import kr.weareboard.bot.service.interfaces.TextChannelService
+import kr.weareboard.main.BOT_VERSION
+import kr.weareboard.main.NOTICE_FLAG
+import kr.weareboard.main.TEXT_CHANNEL_NAME
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
@@ -19,21 +23,30 @@ import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInterac
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
 // 초기 메세지 전달 쓰레드 생성
 val messageThread = Thread {
-        Thread.sleep(1000)
+    Thread.sleep(1000)
 }
 
-object MusicListener : ListenerAdapter() {
+@Component
+class MusicListener(
+    private val playCommand: PlayCommand,
+    private val skipCommand: SkipCommand,
+    private val stopCommand: StopCommand,
+    private val playerManager: PlayerManager,
+    private val botService: BotService,
+    private val textChannelService: TextChannelService
+) : ListenerAdapter() {
     private val log = LoggerFactory.getLogger(MusicListener::class.java)
 
     override fun onGuildReady(event: GuildReadyEvent) {
         val guild = event.guild
-        val channels = guild.getTextChannelsByName(TEXT_CHANNEL_NAME, true)!! as List<TextChannel>
+        val channels = guild.getTextChannelsByName(TEXT_CHANNEL_NAME, true) as List<TextChannel>
         channels.forEach { channel ->
             log.info("채널 ${channel.name}에 메세지를 삭제합니다.")
-            channel.deleteAllMessages()
+            textChannelService.deleteAllMessages(channel)
             log.info("채널 ${channel.name}에 메세지를 삭제했습니다.")
         }
 
@@ -41,7 +54,12 @@ object MusicListener : ListenerAdapter() {
 
         channels.forEach { channel ->
             log.info("채널 ${channel.name}에 메세지를 보냅니다.")
-            channel.sendMessage("헬파티봇의 현재 버전은 $BOT_VERSION 입니다.").queue()
+            textChannelService.sendFirstMessage(
+                channel = channel,
+                title = "${TEXT_CHANNEL_NAME}의 현재 버전은 $BOT_VERSION 입니다.",
+                description = "노래 제목을 검색해보세요!",
+            )
+
             log.info("채널 ${channel.name}에 메세지를 보냈습니다.")
         }
     }
@@ -54,7 +72,7 @@ object MusicListener : ListenerAdapter() {
             isValidTextChannel(event.channel) // 불가능한 채널이면 InvalidTextChannel 예외 발생
 
             if (
-                member?.user?.isBot == true ||  // 봇의 메세지는 처리하지 않음
+                member?.user?.isBot == true || // 봇의 메세지는 처리하지 않음
                 contentRaw.isNullOrEmpty() &&
                 !contentRaw.contains(" ") &&
                 !contentRaw.isCorrectPrefix() &&
@@ -65,21 +83,25 @@ object MusicListener : ListenerAdapter() {
         } catch (e: InvalidTextChannel) {
             return
         }
-        when (event.message.contentRaw.parseCommand()) {
-//            in PlayCommand.commands
+        var command = event.message.contentRaw.parseCommand()
+        if(command ==""){
+            command = "playcommand"
+        }
+        when (command) {
             in NOTICE_FLAG -> {
                 // 공지사항은 아무런 처리를 하지 않음.
                 return
             }
-            in StopCommand.commands -> {
-                StopCommand.onAction(event)
+            in stopCommand.commands -> {
+                stopCommand.onAction(event)
             }
-            in SkipCommand.commands -> {
-                SkipCommand.onAction(event)
+            in skipCommand.commands -> {
+                skipCommand.onAction(event)
             }
             // stop skip 외에는 플레이어 커맨드로 처리
             else -> {
-                PlayCommand.onAction(event)
+                log.info("play 커맨드로 넘어옴")
+                playCommand.onAction(event)
             }
         }
     }
@@ -97,14 +119,18 @@ object MusicListener : ListenerAdapter() {
                     it.toInt()
                 }
 
-                PlayerManager.getInstance().jumpTo(event.channel as TextChannel, values[0])
+                playerManager.jumpTo(
+                    event.channel as TextChannel,
+                    values[0],
+                    event.member!!,
+                )
             }
         }
     }
 
     override fun onButtonInteraction(event: ButtonInteractionEvent) {
         // logging event info
-        PlayCommand.log.info("onButtonInteraction - ${event.componentId}")
+        log.info("onButtonInteraction - ${event.componentId}")
 //        log.info("${event.interaction}")
         when (event.componentId) {
             "playButton" -> {
@@ -119,7 +145,7 @@ object MusicListener : ListenerAdapter() {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                PlayerManager.getInstance().resume(event.channel as TextChannel)
+                playerManager.resume(event.channel as TextChannel)
             }
             "pauseButton" -> {
                 try {
@@ -133,16 +159,17 @@ object MusicListener : ListenerAdapter() {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                PlayerManager.getInstance().pause(event.channel as TextChannel)
+                playerManager.pause(event.channel as TextChannel)
             }
             "stopButton" -> {
-                PlayerManager.getInstance().stop(event.channel as TextChannel, event.member!!.effectiveName)
+                playerManager.stop(event.channel as TextChannel, event.member!!)
             }
             "skipButton" -> {
-                val isPlayNextTrack = PlayerManager.getInstance().next(event.channel as TextChannel)
+//                val isPlayNextTrack =
+                playerManager.next(event.channel as TextChannel, event.member!!)
             }
             "prevButton" -> {
-                PlayerManager.getInstance().prevTrack(event.channel as TextChannel)
+                playerManager.prevTrack(event.channel as TextChannel)
             }
             "repeatButton" -> {
                 log.info("반복버튼 눌림")
@@ -159,7 +186,7 @@ object MusicListener : ListenerAdapter() {
                     e.printStackTrace()
                 }
                 log.info("process repeat")
-                PlayerManager.getInstance().repeat(event.channel as TextChannel)
+                playerManager.repeat(event.channel as TextChannel)
                 log.info("end process repeat")
             }
         }

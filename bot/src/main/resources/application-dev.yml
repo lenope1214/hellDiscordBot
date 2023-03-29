@@ -1,8 +1,8 @@
 spring:
     datasource:
-        url: jdbc:mariadb://43.200.154.185:58806/hellbot?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&userSSL=false&zeroDateTimeBehavior=convertToNull&validationQuery="select 1"
-        username: develope
-        password: leehj124!$
+        url: jdbc:mariadb://43.200.154.185:10101/hellbot?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&userSSL=false&zeroDateTimeBehavior=convertToNull&validationQuery="select 1"
+        username: hellbot
+        password: leehj124!!!$
         driver-class-name: org.mariadb.jdbc.Driver
     jpa:
         hibernate:

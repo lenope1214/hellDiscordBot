@@ -1,4 +1,4 @@
-package kr.wearebaord.hellbot.domain.enums
+package kr.weareboard.bot.domain.enums
 
 enum class AudioPlayerState {
     PLAYING, PAUSED, STOPPED
