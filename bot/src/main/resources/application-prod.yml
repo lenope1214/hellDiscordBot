@@ -1,6 +1,6 @@
 spring:
     datasource:
-        url: jdbc:mariadb://mariadb:10101/werewolf?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&userSSL=false&zeroDateTimeBehavior=convertToNull&validationQuery="select 1"
+        url: jdbc:mariadb://hellbot_mariadb:10101/werewolf?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&userSSL=false&zeroDateTimeBehavior=convertToNull&validationQuery="select 1"
         username: hellbot
         #        password: 1234
         password: leehj124!!!$
