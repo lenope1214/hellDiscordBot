@@ -1,4 +1,4 @@
-package kr.weareboard.bot.configs
+package kr.wearebaord.hellbot.configs
 
 import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv

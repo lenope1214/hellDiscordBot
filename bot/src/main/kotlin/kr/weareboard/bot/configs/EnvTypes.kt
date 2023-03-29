@@ -1,4 +1,4 @@
-package kr.weareboard.bot.configs
+package kr.wearebaord.hellbot.configs
 
 enum class EnvTypes {
     DEV,

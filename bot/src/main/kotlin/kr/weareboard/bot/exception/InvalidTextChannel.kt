@@ -1,4 +1,4 @@
-package kr.weareboard.bot.exception
+package kr.wearebaord.hellbot.exception
 
 class InvalidTextChannel : Exception() {
     override val message: String?

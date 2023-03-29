@@ -1,4 +1,4 @@
-package kr.weareboard.bot.music
+package kr.wearebaord.hellbot.music
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.track.playback.MutableAudioFrame

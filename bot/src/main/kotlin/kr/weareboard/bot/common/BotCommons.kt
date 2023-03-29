@@ -1,15 +1,35 @@
-package kr.weareboard.bot.common
+package kr.wearebaord.hellbot.common
 
-import kr.weareboard.bot.exception.InvalidTextChannel
+import dev.minn.jda.ktx.interactions.components.SelectOption
+import dev.minn.jda.ktx.interactions.components.StringSelectMenu
+import dev.minn.jda.ktx.interactions.components.button
+import kr.wearebaord.hellbot.domain.enums.ComponentTypes
+import kr.wearebaord.hellbot.domain.enums.EmojiValue
+import kr.wearebaord.hellbot.exception.InvalidTextChannel
+import kr.wearebaord.hellbot.music.PlayTrackInfo
+import kr.wearebaord.hellbot.music.status.getRepeatEmoji
+import kr.wearebaord.hellbot.music.status.getRepeatText
 import kr.weareboard.main.PREFIX
+import kr.weareboard.main.SHOW_BUTTONS
 import kr.weareboard.main.TEXT_CHANNEL_NAME
+import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.GuildVoiceState
 import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.MessageEmbed.Field
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
+import net.dv8tion.jda.api.interactions.components.ActionComponent
+import net.dv8tion.jda.api.interactions.components.ItemComponent
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction
+import net.dv8tion.jda.api.requests.restaction.MessageEditAction
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
+import java.awt.Color
+import java.time.OffsetDateTime
+import java.util.concurrent.TimeUnit
 
 class BotCommands
 
@@ -47,69 +67,7 @@ fun isValidContentRaw(raw: String, commands: List<String>): String {
     return command
 }
 
-fun joinVoiceChannelBot(channel: MessageChannel, member: Member, guild: Guild): Boolean {
-    val selfVoiceState = member.voiceState
-    println("selfVoiceState = $selfVoiceState")
-
-    // 요청자가 음성 채널에 들어가있는가?
-    if (!isMemberEnteredChannel(selfVoiceState, channel)) return false
-
-    // 봇이 이미 음성채널에 들어가있는가?
-    if (isAlreadyConnectedChannel(guild)) return true
-
-    // 요청자가 음성채널에 연결할 권한이 있는가?
-    // if (!isAbleToConnectVoiceChannel(member, channel)) return false
-
-    // 요청자가 음성채널에서 말할 권한이 있는가?
-    // if (!isAbleToSpeakVoice(member, channel)) return false
-
-    val audioManager = guild.audioManager
-
-    // selfVoiceState는 CacheFlag에 VOICE_STATE가 포함되어 있어야 한다
-    val voiceChannel = selfVoiceState!!.channel
-
-    // 봇이 음성 채널에 들어가도록 함
-    audioManager.openAudioConnection(voiceChannel)
-    return true
-}
-
-private fun isAlreadyConnectedChannel(guild: Guild): Boolean {
-    log.info("guild.selfMember = ${guild.selfMember}")
-    if (guild.selfMember.voiceState!!.inAudioChannel()) {
-        return true
-    }
-    return false
-}
-
-private fun isAbleToSpeakVoice(
-    member: Member,
-    channel: MessageChannel
-): Boolean {
-    if (!member.hasPermission(Permission.VOICE_SPEAK)) {
-        channel.sendMessage("음성채널에서 말할 권한이 없습니다.").queue()
-        return false
-    }
-    return true
-}
-
-private fun isAbleToConnectVoiceChannel(
-    member: Member,
-    channel: MessageChannel
-): Boolean {
-    if (!member.hasPermission(Permission.VOICE_CONNECT)) {
-        channel.sendMessage("음성채널에 연결할 권한이 없습니다.").queue()
-        return false
-    }
-    return true
-}
-
-fun isMemberEnteredChannel(
-    selfVoiceState: GuildVoiceState?,
-    channel: MessageChannel
-): Boolean {
-    if (selfVoiceState?.inAudioChannel() != true) {
-        channel.sendMessage("음성채널에 들어가주세요.").queue()
-        return false
-    }
-    return true
+fun MessageChannel.deleteAllMessages() {
+    val channel = this as TextChannel
+    channel.deleteAllMessages()
 }

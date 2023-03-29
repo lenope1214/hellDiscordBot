@@ -16,9 +16,9 @@ repositories {
 dependencies {
     val querydslVersion: String by System.getProperties() // 5.0.0
     val kotlinVersion: String by System.getProperties() // 1.8.10
-    val junitVersion: String by System.getProperties() // "4.13.2"
+    val junitVersion: String by System.getProperties() //"4.13.2"
     val jdaVersion: String by System.getProperties() // "5.0.0-beta.4"
-    val dotenvVersion: String by System.getProperties() // "6.4.1"
+    val dotenvVersion: String by System.getProperties() //"6.4.1"
 
     api(project(":domain"))
 
@@ -42,9 +42,9 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     // jpa가 사용하는 javax가 jakarta로 변경됨에 따라 아래 어노테이션 프로세서를 추가해줘야 한다.
-    annotationProcessor("jakarta.annotation:jakarta.annotation-api")
-    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
-    annotationProcessor("com.querydsl:querydsl-apt:$querydslVersion:jakarta")
+    annotationProcessor ("jakarta.annotation:jakarta.annotation-api")
+    annotationProcessor ("jakarta.persistence:jakarta.persistence-api")
+    annotationProcessor ("com.querydsl:querydsl-apt:${querydslVersion}:jakarta")
 
     // test
     testImplementation("junit:junit:$junitVersion")
@@ -58,7 +58,7 @@ tasks.withType<KotlinCompile> {
 // 실행 가능하게 하도록 설정
 tasks.jar {
 //    manifest {
-//        attributes["Main-Class"] = "kr.weareboard.hellbot.HellBotKt"
+//        attributes["Main-Class"] = "kr.wearebaord.hellbot.HellBotKt"
 //    }
     from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE

@@ -1,11 +1,12 @@
 package kr.weareboard.main
 
-import kr.weareboard.bot.configs.Config
-import kr.weareboard.bot.configs.EnvTypes
-import kr.weareboard.bot.listeners.DefaultListener
-import kr.weareboard.bot.listeners.MusicListener
+import kr.wearebaord.hellbot.configs.Config
+import kr.wearebaord.hellbot.configs.EnvTypes
+import kr.wearebaord.hellbot.listeners.DefaultListener
+import kr.wearebaord.hellbot.listeners.MusicListener
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
@@ -28,10 +29,13 @@ var VOLUME: Int = 50
 var SHOW_BUTTONS: Boolean = false
 
 @Component
-class BotApplication(
-    private val defaultListener: DefaultListener,
-    private val musicListener: MusicListener
-) {
+class BotApplication {
+
+
+
+    fun makeMessage(event: SlashCommandInteractionEvent, message: String) {
+        event.reply(message).setEphemeral(false).queue()
+    }
 
     fun run(profile: String = "PROD") {
         // 프로필 설정
@@ -80,9 +84,9 @@ class BotApplication(
                 CacheFlag.STICKER
             )
             .addEventListeners(
-                defaultListener,
+                DefaultListener,
 //            MessageListener,
-                musicListener
+                MusicListener
             )
             .build()
             .awaitReady()

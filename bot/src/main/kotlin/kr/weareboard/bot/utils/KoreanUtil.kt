@@ -1,4 +1,4 @@
-package kr.weareboard.bot.utils
+package kr.wearebaord.hellbot.utils
 
 object KoreanUtil {
     fun getCompleteWord(

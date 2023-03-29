@@ -1,18 +1,14 @@
-package kr.weareboard.bot.listeners.music
+package kr.wearebaord.hellbot.listeners.music
 
-import kr.weareboard.bot.domain.PlayerManager
-import kr.weareboard.bot.domain.PlayerManagerImpl
+import kr.wearebaord.hellbot.common.isValidTextChannel
+import kr.wearebaord.hellbot.exception.InvalidTextChannel
+import kr.wearebaord.hellbot.domain.PlayerManager
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.stereotype.Component
 
-@Component
-class StopCommand(
-    private val playerManager: PlayerManager,
-) : CommandInterface {
+object StopCommand : CommandInterface {
     val log: Logger = LoggerFactory.getLogger(StopCommand::class.java)
 
     val commands: List<String> = listOf("s", "stop", "ㄴ", "ㄴ새ㅔ", "중지")
@@ -40,7 +36,7 @@ class StopCommand(
             return
         }
 
-        playerManager.stop(channel as TextChannel, event.member!!)
+        PlayerManager.getInstance().stop(channel as TextChannel, event.member!!.effectiveName)
         self.guild.audioManager.closeAudioConnection()
     }
 

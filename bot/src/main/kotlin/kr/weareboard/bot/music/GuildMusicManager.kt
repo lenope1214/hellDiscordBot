@@ -1,22 +1,20 @@
-package kr.weareboard.bot.music
+package kr.wearebaord.hellbot.music
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
-import org.springframework.stereotype.Component
 
-
-@Component
 class GuildMusicManager(
-    val scheduler: TrackScheduler,
+    manager: AudioPlayerManager
 ) {
-    lateinit var audioPlayer: AudioPlayer
-    lateinit var sendHandler: AudioPlayerSendHandler
+    val audioPlayer: AudioPlayer
+    val scheduler: TrackScheduler
+    val sendHandler: AudioPlayerSendHandler
 
-    fun init(manager: AudioPlayerManager){
+    init {
         this.audioPlayer = manager.createPlayer()
+        this.scheduler = TrackScheduler(this.audioPlayer as AudioPlayer)
         this.audioPlayer.addListener(this.scheduler)
         this.sendHandler = AudioPlayerSendHandler(this.audioPlayer)
-        scheduler.init(this.audioPlayer)
     }
 
     fun clearQueue() {

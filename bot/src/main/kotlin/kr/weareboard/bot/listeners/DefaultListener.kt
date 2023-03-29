@@ -1,9 +1,10 @@
-package kr.weareboard.bot.listeners
+package kr.wearebaord.hellbot.listeners
 
-import kr.weareboard.bot.domain.PlayerManager
-import kr.weareboard.bot.utils.KoreanUtil
+import kr.wearebaord.hellbot.domain.PlayerManager
+import kr.wearebaord.hellbot.utils.KoreanUtil
 import kr.weareboard.main.BOT_ID
 import kr.weareboard.main.TEXT_CHANNEL_NAME
+import kr.weareboard.main.makeMessage
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -13,17 +14,9 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 
-@Component
-class DefaultListener(
-    private val playerManager: PlayerManager
-) : ListenerAdapter() {
+object DefaultListener : ListenerAdapter() {
     val log = LoggerFactory.getLogger(DefaultListener::class.java)
-
-    fun makeMessage(event: SlashCommandInteractionEvent, message: String) {
-        event.reply(message).setEphemeral(false).queue()
-    }
 
     override fun onReady(event: ReadyEvent) {
         log.info("Logged in as ${event.jda.selfUser.name}")
@@ -64,12 +57,10 @@ class DefaultListener(
                     val textChannel = leftChannel.guild.textChannels.find {
                         it.name == TEXT_CHANNEL_NAME
                     }
-                    if (textChannel != null) {
-                        playerManager.leftChannel(
-                            guild = leftChannel.guild,
-                            channel = textChannel
-                        )
-                    }
+                    PlayerManager.getInstance().leftChannel(
+                        guild = leftChannel.guild,
+                        channel = textChannel
+                    )
                 }
             }
         }
@@ -142,11 +133,11 @@ class DefaultListener(
                     내가 뭘 할 수 있는 게 없음 ㅜㅜㅜㅜ
 
                     `${event.user.name}`${
-                    KoreanUtil.getCompleteWord(
-                        event.user.name!!,
-                        "은",
-                        "는"
-                    )
+                        KoreanUtil.getCompleteWord(
+                            event.user.name!!,
+                            "은",
+                            "는"
+                        )
                     } 좆밥 새끼임 ㅠ
 
                     존나 화내거나 욕하는 거 말고 할 수 있는 게 없음 ㅠㅠ

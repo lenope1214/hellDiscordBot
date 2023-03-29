@@ -1,6 +1,6 @@
-package kr.weareboard.bot.domain
+package kr.wearebaord.hellbot.domain
 
 data class GuildInfo(
     val guildId: String,
-    val lastMessageId: String
+    val lastMessageId: String,
 )

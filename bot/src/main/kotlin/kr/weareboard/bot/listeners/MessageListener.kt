@@ -1,4 +1,4 @@
-package kr.weareboard.bot.listeners
+package kr.wearebaord.hellbot.listeners
 
 import net.dv8tion.jda.api.entities.channel.ChannelType
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent

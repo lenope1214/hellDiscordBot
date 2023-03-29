@@ -1,4 +1,4 @@
-package kr.weareboard.bot.music
+package kr.wearebaord.hellbot.music
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import net.dv8tion.jda.api.entities.Member
