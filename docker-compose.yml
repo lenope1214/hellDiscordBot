@@ -22,6 +22,8 @@ services:
       MYSQL_USER: hellbot
       MYSQL_PASSWORD: leehj124!!!$
       MYSQL_DATABASE: hellbot
+    networks:
+        - hellbot_network
     ports:
       - '10101:3306'
     volumes:
