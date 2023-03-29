@@ -101,9 +101,6 @@ spring:
 server:
   port: 53103
 
-logging:
-  config: classpath:logback-prod.xml
-
 auth:
   kakao:
     login:
