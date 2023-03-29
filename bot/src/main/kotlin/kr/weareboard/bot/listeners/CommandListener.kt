@@ -1,8 +1,9 @@
-package kr.wearebaord.hellbot.listeners
+package kr.weareboard.bot.listeners
 
-import kr.wearebaord.hellbot.common.BotCommands
-import kr.wearebaord.hellbot.common.isValidContentRaw
-import kr.wearebaord.hellbot.common.joinVoiceChannelBot
+import kr.weareboard.bot.common.isValidContentRaw
+import kr.weareboard.bot.common.joinVoiceChannelBot
+import kr.weareboard.bot.service.interfaces.BotService
+import kr.weareboard.bot.service.interfaces.TextChannelService
 import kr.weareboard.main.OWNER_ID
 import kr.weareboard.main.PREFIX
 import net.dv8tion.jda.api.Permission
@@ -16,7 +17,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class CommandListener(
-    private val botCommands: BotCommands,
+    private val botService: BotService,
+    private val textChannelService: TextChannelService
 ) : ListenerAdapter() {
     val log = LoggerFactory.getLogger(CommandListener::class.java)
 
@@ -30,7 +32,7 @@ class CommandListener(
         if (audioManager.isConnected) {
             audioManager.closeAudioConnection()
         }
-        botCommands.sendEmbed(
+        textChannelService.sendEmbed(
             channel = channel,
             title = "봇이 음성채널에서 나갔습니다.",
             description = "봇이 음성채널에서 나갔습니다."

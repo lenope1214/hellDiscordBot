@@ -1,4 +1,4 @@
-package kr.wearebaord.hellbot.common
+package kr.weareboard.bot.common
 
 fun Long.convertMsToMmSs(): String {
     val seconds = (this / 1000) % 60

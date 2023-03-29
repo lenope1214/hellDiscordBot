@@ -1,4 +1,4 @@
-package kr.wearebaord.hellbot.domain.enums
+package kr.weareboard.bot.domain.enums
 
 import net.dv8tion.jda.api.entities.emoji.Emoji
 

@@ -1,16 +1,20 @@
-package kr.wearebaord.hellbot.listeners.music
+package kr.weareboard.bot.listeners.music
 
-import kr.wearebaord.hellbot.common.isHttpUrl
-import kr.wearebaord.hellbot.common.isMemberEnteredChannel
-import kr.wearebaord.hellbot.common.isValidTextChannel
-import kr.wearebaord.hellbot.common.joinVoiceChannelBot
-import kr.wearebaord.hellbot.exception.InvalidTextChannel
-import kr.wearebaord.hellbot.domain.PlayerManager
+import kr.weareboard.bot.common.isHttpUrl
+import kr.weareboard.bot.common.isMemberEnteredChannel
+import kr.weareboard.bot.common.joinVoiceChannelBot
+import kr.weareboard.bot.domain.PlayerManager
+import kr.weareboard.bot.service.interfaces.BotService
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
-object PlayCommand : CommandInterface {
+@Component
+class PlayCommand(
+    private val playerManager: PlayerManager,
+    private val botService: BotService,
+) : CommandInterface {
     val log = LoggerFactory.getLogger(PlayCommand::class.java)
     override fun onAction(event: MessageReceivedEvent) {
         val raw: String = event.message.contentRaw
@@ -25,10 +29,10 @@ object PlayCommand : CommandInterface {
 
         log.info("member : $member")
         log.info("bot : $bot")
-        if (member.user.isBot)  return // 봇의 메세지는 처리하지 않음
+        if (member.user.isBot) return // 봇의 메세지는 처리하지 않음
 
         // 요청자가 음성 채널에 들어가있는가?
-        if(!isMemberEnteredChannel(memberVoiceState, channel)) return
+        if (!isMemberEnteredChannel(memberVoiceState, channel)) return
 
         // 사용자가 보낸 메세지 삭제
 
@@ -40,14 +44,15 @@ object PlayCommand : CommandInterface {
     }
 
     private fun play(event: MessageReceivedEvent, url: String) {
+        var url = url // url을 대입할 수 있게 함
         val channel = event.channel
 
-        val bot = event.guild!!.selfMember // bot infomation
-        val selfVoiceState = bot!!.voiceState
-        var url = url
+        val bot = event.guild.selfMember // bot infomation
+        val selfVoiceState = bot.voiceState
 
         log.info("url: $url")
-        if (!url.isHttpUrl()) {
+        val isYoutubeSearch = !url.isHttpUrl()
+        if (isYoutubeSearch) {
             log.info("url is not HTTP, search by ytsearch")
             url = "ytsearch:$url"
         }
@@ -55,10 +60,10 @@ object PlayCommand : CommandInterface {
         try {
             // 헬파티 봇이 음성 채널에 없다면 음성 채널에 참가시킨다.
             if (!selfVoiceState!!.inAudioChannel()) {
-                joinVoiceChannelBot(event.channel, event.member!!, event.guild!!)
+                joinVoiceChannelBot(event.channel, event.member!!, event.guild)
             }
-            PlayerManager.getInstance()
-                .loadAndPlay(channel as TextChannel, url, event.member!!)
+            playerManager
+                .loadAndPlay(channel as TextChannel, url, event.member!!, isYoutubeSearch)
         } catch (e: Exception) {
             e.printStackTrace()
             log.error("error: ${e.message}")

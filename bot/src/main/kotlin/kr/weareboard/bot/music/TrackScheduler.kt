@@ -1,4 +1,4 @@
-package kr.wearebaord.hellbot.music
+package kr.weareboard.bot.music
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
@@ -6,16 +6,22 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason.*
-import kr.wearebaord.hellbot.domain.PlayerManager
+import kr.weareboard.bot.domain.PlayerManager
 import kr.weareboard.main.VOLUME
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Lazy
+import org.springframework.stereotype.Component
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
+@Component
 class TrackScheduler(
-    val player: AudioPlayer
+    @Lazy
+    private val playerManager: PlayerManager,
 ) : AudioEventAdapter() {
+
+    lateinit var player: AudioPlayer
     private var pause: Boolean = false
     private var repeat: Boolean = false
     private var lastTrack: AudioTrack? = null
@@ -23,7 +29,10 @@ class TrackScheduler(
 
     private val log = LoggerFactory.getLogger(TrackScheduler::class.java)
 
-    init {
+    fun init(
+        player: AudioPlayer,
+    ) {
+        this.player = player
         player.volume = VOLUME
     }
 
@@ -62,7 +71,7 @@ class TrackScheduler(
             FINISHED, LOAD_FAILED -> {
                 if (track != null) {
                     val channel = track.userData as TextChannel
-                    PlayerManager.getInstance().next(channel)
+                    playerManager.next(channel)
                 }
                 return
             }
@@ -99,12 +108,12 @@ class TrackScheduler(
 
     fun addQueue(track: AudioTrack): Boolean {
         try {
+            log.info("트랙 추가 됨 ${track.info.title}")
+
             // startTrack이 true일 때는 현재 재생하는 노래가 없을때 바로 재생시켰음을 의미
-
             // false일 때는 재생시키지 않았음을 의미.
-
             val startTrack = player.startTrack(track, true)
-            log.info("queue - startTrack: $startTrack")
+
             if (startTrack) {
                 // 만약 첫 곡(플레이 중이 아닌 상태)이라면 마지막 곡 정보를 업데이트
                 lastTrack = track
@@ -191,5 +200,9 @@ class TrackScheduler(
 
     fun doNotRepeat() {
         repeat = false
+    }
+
+    fun turnRepeat() {
+        repeat = !repeat
     }
 }

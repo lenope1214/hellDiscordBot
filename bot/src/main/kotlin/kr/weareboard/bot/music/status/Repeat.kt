@@ -1,6 +1,6 @@
-package kr.wearebaord.hellbot.music.status
+package kr.weareboard.bot.music.status
 
-import kr.wearebaord.hellbot.domain.enums.EmojiValue
+import kr.weareboard.bot.domain.enums.EmojiValue
 import net.dv8tion.jda.api.entities.emoji.Emoji
 
 fun getRepeatText(isRepeat: Boolean): String =
