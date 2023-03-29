@@ -18,9 +18,10 @@ services:
     restart: always
     environment:
       TZ: Asia/Seoul
-      MYSQL_ROOT_PASSWORD: leehj124!$leehj124!$leehj124!$
+      MYSQL_ROOT_PASSWORD: leehj124!!!$
       MYSQL_USER: hellbot
-      MYSQL_PASSWORD: leehj124!$leehj124!$leehj124!$
+      MYSQL_PASSWORD: leehj124!!!$
+      MYSQL_DATABASE: hellbot
     ports:
       - '10101:3306'
     volumes:
