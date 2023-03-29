@@ -1,4 +1,4 @@
-package kr.wearebaord.hellbot.domain.enums
+package kr.weareboard.bot.domain.enums
 
 enum class Playmode {
     NORMAL, LOOPONE, LOOPALL

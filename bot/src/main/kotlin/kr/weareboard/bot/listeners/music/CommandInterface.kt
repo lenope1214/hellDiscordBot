@@ -1,4 +1,4 @@
-package kr.wearebaord.hellbot.listeners.music
+package kr.weareboard.bot.listeners.music
 
 import kr.weareboard.main.NOTICE_FLAG
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent

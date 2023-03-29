@@ -1,8 +1,7 @@
-package kr.weareboard.bot.services.bot.service
+package kr.weareboard.bot.service
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
-import kr.weareboard.bot.services.bot.service.interfaces.BotService
-import kr.weareboard.bot.services.textChannel.TextChannelServiceImpl
+import kr.weareboard.bot.service.interfaces.BotService
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.GuildVoiceState
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class BotServiceImpl(
-    private val textChannelImpl: TextChannelServiceImpl,
+    private val textChannelImpl: TextChannelServiceImpl
 ) : BotService {
     private val log = LoggerFactory.getLogger(BotServiceImpl::class.java)
 
@@ -89,16 +88,17 @@ class BotServiceImpl(
         return true
     }
 
-    fun leaveBot(guild: Guild, channel: TextChannel?) {
+    override fun leaveBot(guild: Guild, channel: TextChannel): Boolean {
         // 봇이 음성채널에 있다면 나가게 한다
         val audioManager = guild.audioManager
         if (audioManager.isConnected) {
             audioManager.closeAudioConnection()
         }
         textChannelImpl.sendEmbed(
+            channel = channel,
             title = "봇이 음성채널에서 나갔습니다.",
             description = "봇이 음성채널에서 나갔습니다."
         )
+        return true
     }
-
 }

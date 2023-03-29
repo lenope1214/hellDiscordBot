@@ -1,4 +1,4 @@
-package kr.wearebaord.hellbot.common
+package kr.weareboard.bot.common
 
 import kr.weareboard.main.PREFIX
 
@@ -21,6 +21,21 @@ fun String.isCorrectPrefix(): Boolean {
 
 // PREFIX를 제외한 내용을 반환하는 함수
 fun String.parseContent(raw: String): String {
+    if (raw.isEmpty()) return ""
+
+    // split 후 1번 인덱스부터 끝까지
+    val substring = raw.substring(PREFIX.length)
+    val split = substring.split(" ")
+    val subList = split.subList(1, split.size)
+    return subList.joinToString(" ")
+}
+
+fun String.parseCommand(): String {
+    if (!this.startsWith(PREFIX) || this.isEmpty() || this.length < PREFIX.length) return ""
+    return this.substring(PREFIX.length).split(" ")[0]
+}
+
+fun parseContent(raw: String): String {
     if (raw.isEmpty()) return ""
 
     // split 후 1번 인덱스부터 끝까지

@@ -1,8 +1,8 @@
-package kr.wearebaord.hellbot.listeners.music
+package kr.weareboard.bot.listeners.music
 
-import kr.wearebaord.hellbot.common.isMemberEnteredChannel
-import kr.wearebaord.hellbot.common.isValidTextChannel
-import kr.wearebaord.hellbot.exception.InvalidTextChannel
+import kr.weareboard.bot.common.isMemberEnteredChannel
+import kr.weareboard.bot.common.isValidTextChannel
+import kr.weareboard.bot.exception.InvalidTextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.slf4j.LoggerFactory
 
