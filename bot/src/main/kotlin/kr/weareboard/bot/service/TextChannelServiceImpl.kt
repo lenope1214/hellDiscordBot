@@ -5,7 +5,6 @@ import dev.minn.jda.ktx.interactions.components.StringSelectMenu
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.EmbedBuilder
 import dev.minn.jda.ktx.messages.MessageCreateBuilder
-import dev.minn.jda.ktx.messages.MessageEditBuilder
 import dev.minn.jda.ktx.messages.editMessage
 import kr.weareboard.bot.common.convertMsToMmSs
 import kr.weareboard.bot.domain.enums.ComponentTypes
@@ -78,7 +77,7 @@ class TextChannelServiceImpl(
         val addedBy = playTrackInfoList.first().addedBy
         // 등록자 정보 출력
         var footerText = "${addedBy.nickname}"
-        if(addedBy.roles.size > 0){
+        if (addedBy.roles.size > 0) {
             footerText += "(${addedBy.roles.joinToString(" | ") { it.name }})"
         }
         val footerIconUrl = addedBy.effectiveAvatar.url
@@ -221,20 +220,20 @@ class TextChannelServiceImpl(
     override fun sendFirstMessage(
         channel: TextChannel,
         title: String,
-        description: String,
+        description: String
     ) {
         // 메세지 임베드 값 생성
         val embed: MessageEmbed = EmbedBuilder(
             title = title,
             description = description,
-            color = 0xFF7B96,
+            color = 0xFF7B96
         ).build()
 
         // 메세지 보내기
         val message = MessageCreateBuilder(
             embeds = listOf(
                 embed
-            ),
+            )
         ).build()
 
         channel.sendMessage(message).queue {
@@ -242,7 +241,7 @@ class TextChannelServiceImpl(
                 GuildEntity(
                     id = channel.id,
                     name = channel.guild.name,
-                    lastMessageId = it.id,
+                    lastMessageId = it.id
                 )
             )
         }

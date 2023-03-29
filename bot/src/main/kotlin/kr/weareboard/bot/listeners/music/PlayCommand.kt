@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 @Component
 class PlayCommand(
     private val playerManager: PlayerManager,
-    private val botService: BotService,
+    private val botService: BotService
 ) : CommandInterface {
     val log = LoggerFactory.getLogger(PlayCommand::class.java)
     override fun onAction(event: MessageReceivedEvent) {

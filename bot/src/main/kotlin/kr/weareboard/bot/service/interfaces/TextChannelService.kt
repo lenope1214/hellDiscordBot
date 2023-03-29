@@ -41,7 +41,7 @@ interface TextChannelService {
     fun sendFirstMessage(
         channel: TextChannel,
         title: String,
-        description: String,
+        description: String
     )
 
     fun updateActionRows(

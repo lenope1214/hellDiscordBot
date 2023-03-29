@@ -4,15 +4,14 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import org.springframework.stereotype.Component
 
-
 @Component
 class GuildMusicManager(
-    val scheduler: TrackScheduler,
+    val scheduler: TrackScheduler
 ) {
     lateinit var audioPlayer: AudioPlayer
     lateinit var sendHandler: AudioPlayerSendHandler
 
-    fun init(manager: AudioPlayerManager){
+    fun init(manager: AudioPlayerManager) {
         this.audioPlayer = manager.createPlayer()
         this.audioPlayer.addListener(this.scheduler)
         this.sendHandler = AudioPlayerSendHandler(this.audioPlayer)

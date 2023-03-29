@@ -1,11 +1,9 @@
 package kr.weareboard.bot.listeners.music
 
 import kr.weareboard.bot.domain.PlayerManager
-import kr.weareboard.bot.domain.PlayerManagerImpl
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 @Component
