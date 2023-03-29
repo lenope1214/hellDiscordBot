@@ -22,7 +22,7 @@ ADD ${COMMON_ENV_FILE} common.env
 ADD ${DEV_ENV_FILE} dev.env
 ADD ${PROD_ENV_FILE} prod.env
 # Set the entry point to the Java executable that runs the application
-ENTRYPOINT ["java", "-jar", "hellbot.jar"]
+ENTRYPOINT ["java", "-jar", "hellbot.jar", "--spring.profiles.active=prod"]
 
 # Expose port 8080
 EXPOSE 10100
