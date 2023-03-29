@@ -1,17 +1,15 @@
 package kr.weareboard.bot.listeners.music
 
 import kr.weareboard.bot.domain.PlayerManager
-import kr.weareboard.bot.domain.PlayerManagerImpl
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 @Component
 class StopCommand(
-    private val playerManager: PlayerManager,
+    private val playerManager: PlayerManager
 ) : CommandInterface {
     val log: Logger = LoggerFactory.getLogger(StopCommand::class.java)
 

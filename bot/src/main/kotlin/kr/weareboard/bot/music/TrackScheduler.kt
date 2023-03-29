@@ -18,7 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue
 @Component
 class TrackScheduler(
     @Lazy
-    private val playerManager: PlayerManager,
+    private val playerManager: PlayerManager
 ) : AudioEventAdapter() {
 
     lateinit var player: AudioPlayer
@@ -30,7 +30,7 @@ class TrackScheduler(
     private val log = LoggerFactory.getLogger(TrackScheduler::class.java)
 
     fun init(
-        player: AudioPlayer,
+        player: AudioPlayer
     ) {
         this.player = player
         player.volume = VOLUME

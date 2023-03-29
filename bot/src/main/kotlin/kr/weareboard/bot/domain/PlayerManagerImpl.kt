@@ -55,7 +55,7 @@ class PlayerManagerImpl(
         channel: TextChannel,
         trackUrl: String,
         addedBy: Member,
-        isYoutubeSearch: Boolean,
+        isYoutubeSearch: Boolean
     ) {
         log.info("loadAndPlay: $trackUrl")
         val musicManager = this.getMusicManager(channel.guild).scheduler
@@ -88,7 +88,7 @@ class PlayerManagerImpl(
                 override fun playlistLoaded(playlist: AudioPlaylist) {
                     // 유튜브 검색 일 시 하나만 추가
                     log.info("============================> 유튜브 검색인가요? : $isYoutubeSearch")
-                    if(isYoutubeSearch){
+                    if (isYoutubeSearch) {
                         trackLoaded(playlist.tracks[0])
                         return
                     }
@@ -99,7 +99,6 @@ class PlayerManagerImpl(
                     playlist.tracks.forEach {
                         musicManager.addQueue(it)
                     }
-
 
 //                    trackLoaded(tracks[0])
                 }
@@ -154,7 +153,7 @@ class PlayerManagerImpl(
     override fun plus(
         channel: TextChannel,
         tracks: List<AudioTrack>,
-        addedBy: Member,
+        addedBy: Member
     ) {
         val guild = channel.guild
 
@@ -177,7 +176,7 @@ class PlayerManagerImpl(
             """
             [ 현재 플레이 리스트 ]
             ${channelHash[guild.idLong]!!.tracks.map { it.track.info.title }}
-        """.trimIndent()
+            """.trimIndent()
         )
         sendMessage(channel)
     }
@@ -195,7 +194,6 @@ class PlayerManagerImpl(
             stop(channel, nextedBy)
             false
         } else {
-
             // 반복재생 중이라면 맨 앞 곡을 맨 뒤에 추가
             if (musicManager.isRepeat()) {
                 log.info("======= 반복 중이므로 맨 앞 곡을 맨 뒤에 추가 (트랙 수 : ${tracks.size}=======")
@@ -209,7 +207,7 @@ class PlayerManagerImpl(
                         """
                         [ 현재 플레이 리스트(${tracks.size}) ]
                         ${tracks.map { it.info.title }}
-                    """.trimIndent()
+                        """.trimIndent()
                     )
                     // set last track
                     musicManager.updateLastTrack(firstTrack)
@@ -229,7 +227,7 @@ class PlayerManagerImpl(
     override fun jumpTo(
         channel: TextChannel,
         index: Int,
-        jumpedBy: Member?,
+        jumpedBy: Member?
     ) {
         val guild = channel.guild
         val tracks = channelHash[guild.idLong]!!.tracks.map { it.track }
@@ -249,7 +247,7 @@ class PlayerManagerImpl(
 
     override fun stop(
         channel: TextChannel,
-        stopedBy: Member?,
+        stopedBy: Member?
     ) {
         log.info("resetTrack")
         val guild = channel.guild
@@ -286,7 +284,7 @@ class PlayerManagerImpl(
 
     override fun resume(
         textChannel: TextChannel,
-        resumedBy: Member?,
+        resumedBy: Member?
     ) {
         val guild = textChannel.guild
         val musicManager = getMusicManager(guild)
@@ -297,7 +295,7 @@ class PlayerManagerImpl(
 
     override fun pause(
         textChannel: TextChannel,
-        pausedBy: Member?,
+        pausedBy: Member?
     ) {
         val guild = textChannel.guild
         val musicManager = getMusicManager(guild)
@@ -309,7 +307,7 @@ class PlayerManagerImpl(
 
     override fun prevTrack(
         textChannel: TextChannel,
-        prevTrackBy: Member?,
+        prevTrackBy: Member?
     ) {
         val guild = textChannel.guild
         val musicManager = getMusicManager(guild)
@@ -328,14 +326,14 @@ class PlayerManagerImpl(
 
     override fun repeat(
         textChannel: TextChannel,
-        repeatBy: Member?,
+        repeatBy: Member?
     ) {
         val guild = textChannel.guild
         val musicManager = getMusicManager(guild)
         val scheduler = musicManager.scheduler
         scheduler.let {
             it.turnRepeat()
-            log.info("현재 repeat 상태 : ${it.isRepeat().toString()}")
+            log.info("현재 repeat 상태 : ${it.isRepeat()}")
         }
     }
 

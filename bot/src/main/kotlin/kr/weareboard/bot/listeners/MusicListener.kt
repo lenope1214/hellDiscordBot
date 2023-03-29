@@ -57,7 +57,7 @@ class MusicListener(
             textChannelService.sendFirstMessage(
                 channel = channel,
                 title = "${TEXT_CHANNEL_NAME}의 현재 버전은 $BOT_VERSION 입니다.",
-                description = "노래 제목을 검색해보세요!",
+                description = "노래 제목을 검색해보세요!"
             )
 
             log.info("채널 ${channel.name}에 메세지를 보냈습니다.")
@@ -84,7 +84,7 @@ class MusicListener(
             return
         }
         var command = event.message.contentRaw.parseCommand()
-        if(command ==""){
+        if (command == "") {
             command = "playcommand"
         }
         when (command) {
@@ -122,7 +122,7 @@ class MusicListener(
                 playerManager.jumpTo(
                     event.channel as TextChannel,
                     values[0],
-                    event.member!!,
+                    event.member!!
                 )
             }
         }
