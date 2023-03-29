@@ -1,12 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-plugins {
-    id("java")
-}
-
-group = "kr.weareboard.bot"
-version = ""
-
 repositories {
     mavenCentral() // everything else
     maven("https://m2.dv8tion.net/releases") // jda
@@ -51,17 +42,10 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
+tasks.withType<Jar> {
+    enabled = false
 }
 
-// 실행 가능하게 하도록 설정
-tasks.jar {
-//    manifest {
-//        attributes["Main-Class"] = "kr.weareboard.hellbot.HellBotKt"
-//    }
-    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    archiveFileName.set("hellbot.jar")
+tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
+    enabled = true
 }
