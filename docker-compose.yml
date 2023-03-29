@@ -6,7 +6,7 @@ services:
     ports:
       - "10100:10100"
     networks:
-      - hellbot_network
+      - mariadb
     volumes:
       - ./logs:/home/hellbot/logs
     depends_on:
@@ -23,7 +23,7 @@ services:
       MYSQL_PASSWORD: leehj124!!!$
       MYSQL_DATABASE: hellbot
     networks:
-        - hellbot_network
+        - mariadb
     ports:
       - '10101:3306'
     volumes:
@@ -34,5 +34,5 @@ volumes:
 
 
 networks:
-  hellbot_network:
+  mariadb:
         driver: bridge
