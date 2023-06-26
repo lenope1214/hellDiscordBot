@@ -1,4 +1,4 @@
-package kr.weareboard.werewolf.domain.entity.util
+package kr.weareboard.domain.entity.util
 
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.findByIdOrNull
