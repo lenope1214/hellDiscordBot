@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.util.*
 
 @Service
 class PlayerManagerImpl(
@@ -25,7 +26,7 @@ class PlayerManagerImpl(
     private val botService: BotService,
     private val textChannelService: TextChannelService
 ) : PlayerManager {
-    private val log = LoggerFactory.getLogger(PlayerManagerImpl::class.java)
+    private val log = LoggerFactory.getLogger(PlayerManagerImpl::class. java)
     private val musicManagers: HashMap<Long, GuildMusicManager> = HashMap()
     private val audioPlayerManager: AudioPlayerManager = DefaultAudioPlayerManager()
     private var channelHash: HashMap<Long, ChannelInfo> = HashMap()
@@ -259,8 +260,10 @@ class PlayerManagerImpl(
 
         var stopedByMessage = ""
         // stopedBy?.effectiveName가 null이면 "" 아니면 stopedBy?.effectiveName에 의해를 추가
-        if (stopedBy?.effectiveName != null) {
-            stopedByMessage = "${stopedBy.effectiveName}에 의해 "
+        log.info("stopedBy?.nickname : ${stopedBy?.nickname}")
+        log.info("stopedBy?.effectiveName : ${stopedBy?.effectiveName}")
+        if (stopedBy?.nickname != null) {
+            stopedByMessage = "${stopedBy.nickname}에 의해 "
         }
 
         textChannelService.sendEmbed(
@@ -271,7 +274,7 @@ class PlayerManagerImpl(
         )
 
         Thread {
-            Thread.sleep(300 * 1000) // 60 초 뒤에 나가게 함
+            Thread.sleep(300 * 1000) // 300 초 뒤에 나가게 함
             // 이때 만약 다른 사람이 노래를 추가했다면 나가지 않음
             // 종료되고 아무것도 추가 안 했을때 size를 확인해봐야 함
             if (channelInfo.tracks.size > 0) {
@@ -279,6 +282,11 @@ class PlayerManagerImpl(
                 return@Thread
             }
             leftChannel(guild, channel)
+        }.start()
+
+        Thread {
+            Thread.sleep(5 * 1000) // 5초 뒤에 기본 메세지를 보냄
+            textChannelService.sendDefaultMessage(channel)
         }.start()
     }
 

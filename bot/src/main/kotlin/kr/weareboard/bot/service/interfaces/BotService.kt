@@ -12,5 +12,9 @@ interface BotService {
 
     fun isAlreadyConnectedChannel(guild: Guild): Boolean
 
+    fun isMemberEnteredChannel(
+        guild: Guild,
+        channel: TextChannel
+    ): Boolean
     fun leaveBot(guild: Guild, channel: TextChannel): Boolean
 }

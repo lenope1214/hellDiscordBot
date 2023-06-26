@@ -2,9 +2,9 @@ package kr.weareboard.bot.service
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import kr.weareboard.bot.service.interfaces.BotService
+import kr.weareboard.bot.service.interfaces.TextChannelService
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
-import net.dv8tion.jda.api.entities.GuildVoiceState
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class BotServiceImpl(
-    private val textChannelImpl: TextChannelServiceImpl
+    private val textChannelService: TextChannelService
 ) : BotService {
     private val log = LoggerFactory.getLogger(BotServiceImpl::class.java)
 
@@ -26,7 +26,7 @@ class BotServiceImpl(
         println("selfVoiceState = $selfVoiceState")
 
         // 요청자가 음성 채널에 들어가있는가?
-        if (!isMemberEnteredChannel(selfVoiceState, channel)) return false
+        if (!isMemberEnteredChannel(guild, channel)) return false
 
         // 봇이 이미 음성채널에 들어가있는가?
         if (isAlreadyConnectedChannel(guild)) return true
@@ -49,10 +49,7 @@ class BotServiceImpl(
 
     override fun isAlreadyConnectedChannel(guild: Guild): Boolean {
         log.info("guild.selfMember = ${guild.selfMember}")
-        if (guild.selfMember.voiceState!!.inAudioChannel()) {
-            return true
-        }
-        return false
+        return guild.selfMember.voiceState!!.inAudioChannel()
     }
 
     private fun isAbleToSpeakVoice(
@@ -77,12 +74,13 @@ class BotServiceImpl(
         return true
     }
 
-    fun isMemberEnteredChannel(
-        selfVoiceState: GuildVoiceState?,
-        channel: MessageChannel
+    override fun isMemberEnteredChannel(
+        guild: Guild,
+        channel: TextChannel
     ): Boolean {
-        if (selfVoiceState?.inAudioChannel() != true) {
-            channel.sendMessage("음성채널에 들어가주세요.").queue()
+        if (isAlreadyConnectedChannel(guild)) {
+            textChannelService.sendPleaseEnterVoiceChannel(channel)
+//            channel.sendMessage("음성채널에 들어가주세요.").queue()
             return false
         }
         return true
@@ -94,11 +92,16 @@ class BotServiceImpl(
         if (audioManager.isConnected) {
             audioManager.closeAudioConnection()
         }
-        textChannelImpl.sendEmbed(
+        textChannelService.sendEmbed(
             channel = channel,
             title = "봇이 음성채널에서 나갔습니다.",
             description = "봇이 음성채널에서 나갔습니다."
         )
+
+        Thread {
+            Thread.sleep(5 * 1000) // 5초 뒤에 기본 메세지를 보냄
+            textChannelService.sendDefaultMessage(channel)
+        }.start()
         return true
     }
 }

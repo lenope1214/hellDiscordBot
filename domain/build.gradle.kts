@@ -3,11 +3,13 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 val querydslVersion: String by System.getProperties()
 
 plugins {
+    val kotlinVersion: String by System.getProperties() // 1.8.10
     kotlin("kapt")
     kotlin("plugin.jpa")
 
     // intellij idea에서 사용할 수 있도록 추가
     idea
+    kotlin("jvm") version kotlinVersion
 }
 
 // allopen setting 1
@@ -49,4 +51,8 @@ dependencies {
     kapt("com.querydsl:querydsl-apt:$querydslVersion:jakarta") // 이게 없으면 build해도 Q class가 생성되지 않는다.
 
     kapt("org.springframework.boot:spring-boot-configuration-processor")
+    implementation(kotlin("stdlib"))
+}
+repositories {
+    mavenCentral()
 }

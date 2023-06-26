@@ -1,3 +1,7 @@
+plugins {
+    val kotlinVersion: String by System.getProperties() // 1.8.10
+    kotlin("jvm") version kotlinVersion
+}
 repositories {
     mavenCentral() // everything else
     maven("https://m2.dv8tion.net/releases") // jda

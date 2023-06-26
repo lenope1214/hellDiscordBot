@@ -54,11 +54,7 @@ class MusicListener(
 
         channels.forEach { channel ->
             log.info("채널 ${channel.name}에 메세지를 보냅니다.")
-            textChannelService.sendFirstMessage(
-                channel = channel,
-                title = "${TEXT_CHANNEL_NAME}의 현재 버전은 $BOT_VERSION 입니다.",
-                description = "노래 제목을 검색해보세요!"
-            )
+            textChannelService.sendFirstMessage(channel = channel)
 
             log.info("채널 ${channel.name}에 메세지를 보냈습니다.")
         }
