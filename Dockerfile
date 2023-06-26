@@ -11,7 +11,8 @@ RUN java -version
 WORKDIR /home/hellbot
 
 # Copy the Java application into the container
-ARG JAR_FILE=bot/build/libs/hellbot.jar
+CMD ["ls", "-al"]
+ARG JAR_FILE=bot/build/libs/bot.jar
 ARG COMMON_ENV_FILE=common.env
 ARG DEV_ENV_FILE=dev.env
 ARG PROD_ENV_FILE=prod.env

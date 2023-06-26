@@ -1,12 +1,8 @@
 spring:
     datasource:
-        url: jdbc:mariadb://hellbot_mariadb:10101/werewolf?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&userSSL=false&zeroDateTimeBehavior=convertToNull&validationQuery="select 1"
+        url: jdbc:mariadb://hellbot_mariadb:3306/hellbot?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&userSSL=false&zeroDateTimeBehavior=convertToNull&validationQuery="select 1"
         username: hellbot
-        #        password: 1234
         password: leehj124!!!$
-        #    url: jdbc:mariadb://14.45.108.75:3306/laundry?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&userSSL=false&zeroDateTimeBehavior=convertToNull&validationQuery="select 1"
-        #    username: laundry
-        #    password: jsolwpdlthffntus750!@
         driver-class-name: org.mariadb.jdbc.Driver
     jpa:
         hibernate:
@@ -20,16 +16,10 @@ server:
 
 logging:
     config: classpath:logback-spring.xml
-
-auth:
-    kakao:
-        login:
-            redirect:
-                url: https://plz-front-highjoon.vercel.app
-        logout:
-            redirect:
-                url: http://localhost:3000
-
+#    level:
+#        org.springframework.web: INFO
+#        org.hibernate.SQL: DEBUG
+#        org.hibernate.type: TRACE
 storage:
     location: D:/weareboard_files/lp/files
     # 마지막 /는 필수입니다.
