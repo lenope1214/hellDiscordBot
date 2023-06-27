@@ -74,7 +74,13 @@ class PlayCommand(
                 botService.joinVoiceChannelIfNotJoined(event.channel as TextChannel, event.member!!, event.guild)
             }
             playerManager
-                .loadAndPlay(channel as TextChannel, url, event.member!!, isYoutubeSearch)
+                .loadAndPlay(
+                    guild = event.guild,
+                    channel = channel as TextChannel,
+                    trackUrl = url,
+                    addedBy = event.member!!,
+                    isYoutubeSearch = isYoutubeSearch,
+                )
         } catch (e: Exception) {
             e.printStackTrace()
             log.error("error: ${e.message}")

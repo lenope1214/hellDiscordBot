@@ -12,21 +12,22 @@ import kr.weareboard.bot.music.GuildMusicManager
 import kr.weareboard.bot.music.PlayTrackInfo
 import kr.weareboard.bot.service.interfaces.BotService
 import kr.weareboard.bot.service.interfaces.TextChannelService
+import kr.weareboard.domain.entity.music.service.MusicHistoryService
 import kr.weareboard.main.TEXT_CHANNEL_NAME
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class PlayerManagerImpl(
     private val guildMusicManager: GuildMusicManager,
     private val botService: BotService,
-    private val textChannelService: TextChannelService
+    private val textChannelService: TextChannelService,
+    private val musicHistoryService: MusicHistoryService,
 ) : PlayerManager {
-    private val log = LoggerFactory.getLogger(PlayerManagerImpl::class. java)
+    private val log = LoggerFactory.getLogger(PlayerManagerImpl::class.java)
     private val musicManagers: HashMap<Long, GuildMusicManager> = HashMap()
     private val audioPlayerManager: AudioPlayerManager = DefaultAudioPlayerManager()
     private var channelHash: HashMap<Long, ChannelInfo> = HashMap()
@@ -53,10 +54,11 @@ class PlayerManagerImpl(
     }
 
     override fun loadAndPlay(
+        guild: Guild,
         channel: TextChannel,
         trackUrl: String,
         addedBy: Member,
-        isYoutubeSearch: Boolean
+        isYoutubeSearch: Boolean,
     ) {
         log.info("loadAndPlay: $trackUrl")
         val musicManager = this.getMusicManager(channel.guild).scheduler
@@ -100,8 +102,6 @@ class PlayerManagerImpl(
                     playlist.tracks.forEach {
                         musicManager.addQueue(it)
                     }
-
-//                    trackLoaded(tracks[0])
                 }
 
                 override fun noMatches() {
@@ -170,6 +170,16 @@ class PlayerManagerImpl(
                     track = track,
                     addedBy = addedBy
                 )
+            )
+
+            musicHistoryService.addHistory(
+                guildId = guild.id,
+                memberId = addedBy.id,
+                trackIdentifier = track.identifier,
+                title = track.info.title,
+                author = track.info.author,
+                url = track.info.uri,
+                time = track.info.length,
             )
         }
 

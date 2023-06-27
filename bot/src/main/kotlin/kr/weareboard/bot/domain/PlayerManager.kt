@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 interface PlayerManager {
     fun getMusicManager(guild: Guild): GuildMusicManager
     fun loadAndPlay(
+        guild: Guild,
         channel: TextChannel,
         trackUrl: String,
         addedBy: Member,

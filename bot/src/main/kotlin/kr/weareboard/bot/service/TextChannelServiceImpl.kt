@@ -15,6 +15,7 @@ import kr.weareboard.bot.music.status.getRepeatText
 import kr.weareboard.bot.service.interfaces.TextChannelService
 import kr.weareboard.domain.entity.guild.GuildEntity
 import kr.weareboard.domain.entity.guild.GuildRepository
+import kr.weareboard.domain.entity.music.MusicHistoryRepository
 import kr.weareboard.main.BOT_VERSION
 import kr.weareboard.main.SHOW_BUTTONS
 import kr.weareboard.main.TEXT_CHANNEL_NAME
@@ -34,7 +35,8 @@ import org.springframework.stereotype.Service
 
 @Service
 class TextChannelServiceImpl(
-    private val guildRepository: GuildRepository
+    private val guildRepository: GuildRepository,
+    private val musicHistoryRepository: MusicHistoryRepository,
 ) : TextChannelService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -77,10 +79,10 @@ class TextChannelServiceImpl(
         description: String,
         author: String,
         duration: Long,
-        youtubeIdentity: String,
+        trackIdentifier: String,
         playTrackInfoList: List<PlayTrackInfo>,
         isPause: Boolean,
-        isRepeat: Boolean
+        isRepeat: Boolean,
     ) {
         if (playTrackInfoList.isEmpty()) return
         // 트랙 정보 리스트 출력
@@ -98,11 +100,20 @@ class TextChannelServiceImpl(
         }
         val footerIconUrl = addedBy.effectiveAvatar.url
 
-        fields.add(
-            Field(
-                "노래 길이",
-                duration.convertMsToMmSs(),
-                true
+        log.info("youtubeIdentity : $trackIdentifier")
+        fields.addAll(
+            listOf(
+
+                Field(
+                    "노래 길이",
+                    duration.convertMsToMmSs(),
+                    true // 동일 열에 넣을지
+                ),
+                Field(
+                    "총 재생 회수",
+                    "${musicHistoryRepository.countByTrackIdentifier(trackIdentifier)}회",
+                    true // 동일 열에 넣을지
+                )
             )
         )
 
@@ -181,7 +192,7 @@ class TextChannelServiceImpl(
             title = title,
             description = description,
             author = author,
-            thumbnail = youtubeIdentity.isNotEmpty().let { "https://i.ytimg.com/vi/$youtubeIdentity/hqdefault.jpg" },
+            thumbnail = trackIdentifier.isNotEmpty().let { "https://i.ytimg.com/vi/$trackIdentifier/hqdefault.jpg" },
             fields = fields,
             actionRowsMap = actionRowsMap,
             footerText = footerText,
