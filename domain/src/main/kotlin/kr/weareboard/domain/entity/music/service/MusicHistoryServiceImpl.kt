@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service
 
 @Service
 class MusicHistoryServiceImpl(
-    private val musicHistoryRepository: MusicHistoryRepository,
-) : MusicHistoryService{
+    private val musicHistoryRepository: MusicHistoryRepository
+) : MusicHistoryService {
 
     override fun addHistory(
         guildId: String,
@@ -17,18 +17,20 @@ class MusicHistoryServiceImpl(
         title: String,
         author: String,
         url: String,
-        time: Long,
+        time: Long
     ): MusicHistoryDto {
-        return MusicHistoryDto(musicHistoryRepository.save(
-            MusicHistoryEntity(
-                memberId = memberId,
-                guildId = guildId,
-                trackIdentifier = trackIdentifier,
-                title = title,
-                author = author,
-                url = url,
-                time = time,
+        return MusicHistoryDto(
+            musicHistoryRepository.save(
+                MusicHistoryEntity(
+                    memberId = memberId,
+                    guildId = guildId,
+                    trackIdentifier = trackIdentifier,
+                    title = title,
+                    author = author,
+                    url = url,
+                    time = time
+                )
             )
-        ))
+        )
     }
 }

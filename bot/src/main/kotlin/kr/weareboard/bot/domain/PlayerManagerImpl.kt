@@ -25,7 +25,7 @@ class PlayerManagerImpl(
     private val guildMusicManager: GuildMusicManager,
     private val botService: BotService,
     private val textChannelService: TextChannelService,
-    private val musicHistoryService: MusicHistoryService,
+    private val musicHistoryService: MusicHistoryService
 ) : PlayerManager {
     private val log = LoggerFactory.getLogger(PlayerManagerImpl::class.java)
     private val musicManagers: HashMap<Long, GuildMusicManager> = HashMap()
@@ -58,7 +58,7 @@ class PlayerManagerImpl(
         channel: TextChannel,
         trackUrl: String,
         addedBy: Member,
-        isYoutubeSearch: Boolean,
+        isYoutubeSearch: Boolean
     ) {
         log.info("loadAndPlay: $trackUrl")
         val musicManager = this.getMusicManager(channel.guild).scheduler
@@ -179,7 +179,7 @@ class PlayerManagerImpl(
                 title = track.info.title,
                 author = track.info.author,
                 url = track.info.uri,
-                time = track.info.length,
+                time = track.info.length
             )
         }
 

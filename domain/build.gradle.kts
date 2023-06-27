@@ -1,4 +1,4 @@
-import org.springframework.boot.gradle.tasks.bundling.BootJar
+
 
 val querydslVersion: String by System.getProperties()
 

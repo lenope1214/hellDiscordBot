@@ -1,7 +1,5 @@
 package kr.weareboard.domain.entity.music.dto
 
-import jakarta.persistence.Column
-import jakarta.persistence.Id
 import kr.weareboard.domain.entity.music.MusicHistoryEntity
 
 data class MusicHistoryDto(
@@ -12,7 +10,7 @@ data class MusicHistoryDto(
     var title: String,
     var author: String,
     var url: String,
-    var time: Long,
+    var time: Long
 ) {
     constructor(musicHistoryEntity: MusicHistoryEntity) : this(
         id = musicHistoryEntity.id,
@@ -22,6 +20,6 @@ data class MusicHistoryDto(
         title = musicHistoryEntity.title,
         author = musicHistoryEntity.author,
         url = musicHistoryEntity.url,
-        time = musicHistoryEntity.time,
+        time = musicHistoryEntity.time
     )
 }

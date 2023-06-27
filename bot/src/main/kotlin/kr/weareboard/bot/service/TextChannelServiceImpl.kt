@@ -36,7 +36,7 @@ import org.springframework.stereotype.Service
 @Service
 class TextChannelServiceImpl(
     private val guildRepository: GuildRepository,
-    private val musicHistoryRepository: MusicHistoryRepository,
+    private val musicHistoryRepository: MusicHistoryRepository
 ) : TextChannelService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -82,7 +82,7 @@ class TextChannelServiceImpl(
         trackIdentifier: String,
         playTrackInfoList: List<PlayTrackInfo>,
         isPause: Boolean,
-        isRepeat: Boolean,
+        isRepeat: Boolean
     ) {
         if (playTrackInfoList.isEmpty()) return
         // 트랙 정보 리스트 출력
@@ -264,7 +264,7 @@ class TextChannelServiceImpl(
     }
 
     override fun sendFirstMessage(
-        channel: TextChannel,
+        channel: TextChannel
     ) {
         val title = "${TEXT_CHANNEL_NAME}의 현재 버전은 $BOT_VERSION 입니다."
         val description = "노래 제목을 검색해보세요!"

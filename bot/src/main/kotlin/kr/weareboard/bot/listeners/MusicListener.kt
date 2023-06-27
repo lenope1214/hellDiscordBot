@@ -13,7 +13,6 @@ import kr.weareboard.bot.music.status.getRepeatEmoji
 import kr.weareboard.bot.music.status.getRepeatText
 import kr.weareboard.bot.service.interfaces.BotService
 import kr.weareboard.bot.service.interfaces.TextChannelService
-import kr.weareboard.main.BOT_VERSION
 import kr.weareboard.main.NOTICE_FLAG
 import kr.weareboard.main.TEXT_CHANNEL_NAME
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel

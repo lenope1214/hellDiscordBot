@@ -2,7 +2,6 @@ package kr.weareboard.domain.entity.music.service
 
 import kr.weareboard.domain.entity.music.dto.MusicHistoryDto
 
-
 interface MusicHistoryService {
     fun addHistory(
         guildId: String,
@@ -11,6 +10,6 @@ interface MusicHistoryService {
         title: String,
         author: String,
         url: String,
-        time: Long,
+        time: Long
     ): MusicHistoryDto
 }

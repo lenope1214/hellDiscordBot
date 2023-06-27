@@ -30,7 +30,7 @@ class PlayCommand(
 
         log.info("member : $member")
         log.info("bot : $bot")
-        if(member == null) return
+        if (member == null) return
         if (member.user.isBot) return // 봇의 메세지는 처리하지 않음
 
         // 요청자가 음성 채널에 들어가있는가?
@@ -79,7 +79,7 @@ class PlayCommand(
                     channel = channel as TextChannel,
                     trackUrl = url,
                     addedBy = event.member!!,
-                    isYoutubeSearch = isYoutubeSearch,
+                    isYoutubeSearch = isYoutubeSearch
                 )
         } catch (e: Exception) {
             e.printStackTrace()

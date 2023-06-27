@@ -21,7 +21,7 @@ class GuildEntity(
 
     @Id
     @Column(name = "guild_id")
-    val id: String,
+    val id: String
 ) : BaseEntity() {
     fun updateLastMessageId(lastMessageId: String) {
         try {

@@ -12,7 +12,7 @@ private val log = org.slf4j.LoggerFactory.getLogger(MusicHistoryEntity::class.ja
 @Table(
     name = "tb_music_history",
     indexes = [
-        Index(name = "idx_music_history_trackIdentifier_title_url", columnList = "trackIdentifier,title,url"),
+        Index(name = "idx_music_history_trackIdentifier_title_url", columnList = "trackIdentifier,title,url")
     ]
 )
 class MusicHistoryEntity(
@@ -47,5 +47,5 @@ class MusicHistoryEntity(
     @Id
     @Column(name = "id", updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    val id: Long = 0
 ) : BaseEntity()
