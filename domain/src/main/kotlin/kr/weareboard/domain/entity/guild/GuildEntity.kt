@@ -1,7 +1,7 @@
 package kr.weareboard.domain.entity.guild
 
 import jakarta.persistence.*
-import kr.weareboard.werewolf.domain.entity.BaseEntity
+import kr.weareboard.domain.entity.BaseEntity
 import org.hibernate.annotations.Where
 
 private val log = org.slf4j.LoggerFactory.getLogger(GuildEntity::class.java)

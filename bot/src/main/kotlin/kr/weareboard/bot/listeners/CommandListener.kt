@@ -1,13 +1,11 @@
 package kr.weareboard.bot.listeners
 
 import kr.weareboard.bot.common.isValidContentRaw
-import kr.weareboard.bot.common.joinVoiceChannelBot
 import kr.weareboard.bot.service.interfaces.BotService
 import kr.weareboard.bot.service.interfaces.TextChannelService
 import kr.weareboard.main.OWNER_ID
 import kr.weareboard.main.PREFIX
 import net.dv8tion.jda.api.Permission
-import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
@@ -24,23 +22,6 @@ class CommandListener(
 
     override fun onReady(event: ReadyEvent) {
         log.info("Logged in as ${event.jda.selfUser.name}")
-    }
-
-    fun leaveBot(guild: Guild, channel: TextChannel) {
-        // 봇이 음성채널에 있다면 나가게 한다
-        val audioManager = guild.audioManager
-        if (audioManager.isConnected) {
-            audioManager.closeAudioConnection()
-        }
-        textChannelService.sendEmbed(
-            channel = channel,
-            title = "봇이 음성채널에서 나갔습니다.",
-            description = "봇이 음성채널에서 나갔습니다."
-        )
-//        channel?.sendEmbed(
-//            title = "봇이 음성채널에서 나갔습니다.",
-//            description = "봇이 음성채널에서 나갔습니다."
-//        )
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
@@ -64,13 +45,13 @@ class CommandListener(
 
             PREFIX + "join" -> {
                 log.info("join bot by username : ${event.author.name}")
-                joinVoiceChannelBot(event.channel, event.member!!, event.guild)
+                botService.joinVoiceChannelIfNotJoined(event.channel as TextChannel, event.member!!, event.guild)
             }
 
             PREFIX + "leave" -> {
                 log.info("leave bot by username : ${event.author.name}")
                 val channel = event.channel as TextChannel
-                leaveBot(event.guild, channel)
+                botService.leaveBot(event.guild, channel)
             }
         }
     }

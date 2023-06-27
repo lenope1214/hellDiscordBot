@@ -1,7 +1,7 @@
 package kr.weareboard.domain.entity
 
 import jakarta.persistence.*
-import kr.weareboard.werewolf.domain.entity.BaseEntity
+import kr.weareboard.domain.entity.BaseEntity
 import org.hibernate.annotations.Where
 
 @Where(clause = "deleted_at IS NULL")

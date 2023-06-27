@@ -9,7 +9,7 @@ server:
 
 spring:
   profiles:
-    active: local
+    active: dev
 
   mvc:
     pathmatch:

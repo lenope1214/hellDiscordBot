@@ -15,7 +15,10 @@ import kr.weareboard.bot.music.status.getRepeatText
 import kr.weareboard.bot.service.interfaces.TextChannelService
 import kr.weareboard.domain.entity.guild.GuildEntity
 import kr.weareboard.domain.entity.guild.GuildRepository
+import kr.weareboard.domain.entity.music.MusicHistoryRepository
+import kr.weareboard.main.BOT_VERSION
 import kr.weareboard.main.SHOW_BUTTONS
+import kr.weareboard.main.TEXT_CHANNEL_NAME
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.entities.MessageEmbed.Field
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
@@ -32,10 +35,25 @@ import org.springframework.stereotype.Service
 
 @Service
 class TextChannelServiceImpl(
-    private val guildRepository: GuildRepository
+    private val guildRepository: GuildRepository,
+    private val musicHistoryRepository: MusicHistoryRepository,
 ) : TextChannelService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    override fun updateActionRows(
+        actionRowsMap: Map<ComponentTypes, List<ItemComponent>>,
+        sendMessageEmbeds: MessageEditAction
+    ) {
+        if (actionRowsMap.isNotEmpty()) {
+            var components: List<ItemComponent> = mutableListOf()
+            actionRowsMap.forEach { (_, value) ->
+                log.info("updateActionRows : $value")
+                components = components.plus(value)
+            }
+            sendMessageEmbeds.setActionRow(components)
+        }
+    }
 
     override fun deleteAllMessages(channel: MessageChannel) {
         try {
@@ -61,10 +79,10 @@ class TextChannelServiceImpl(
         description: String,
         author: String,
         duration: Long,
-        youtubeIdentity: String,
+        trackIdentifier: String,
         playTrackInfoList: List<PlayTrackInfo>,
         isPause: Boolean,
-        isRepeat: Boolean
+        isRepeat: Boolean,
     ) {
         if (playTrackInfoList.isEmpty()) return
         // 트랙 정보 리스트 출력
@@ -76,17 +94,26 @@ class TextChannelServiceImpl(
         var fields = mutableListOf<Field>()
         val addedBy = playTrackInfoList.first().addedBy
         // 등록자 정보 출력
-        var footerText = "${addedBy.nickname}"
+        var footerText = "${addedBy.effectiveName}"
         if (addedBy.roles.size > 0) {
             footerText += "(${addedBy.roles.joinToString(" | ") { it.name }})"
         }
         val footerIconUrl = addedBy.effectiveAvatar.url
 
-        fields.add(
-            Field(
-                "노래 길이",
-                duration.convertMsToMmSs(),
-                true
+        log.info("youtubeIdentity : $trackIdentifier")
+        fields.addAll(
+            listOf(
+
+                Field(
+                    "노래 길이",
+                    duration.convertMsToMmSs(),
+                    true // 동일 열에 넣을지
+                ),
+                Field(
+                    "총 재생 회수",
+                    "${musicHistoryRepository.countByTrackIdentifier(trackIdentifier)}회",
+                    true // 동일 열에 넣을지
+                )
             )
         )
 
@@ -165,7 +192,7 @@ class TextChannelServiceImpl(
             title = title,
             description = description,
             author = author,
-            thumbnail = youtubeIdentity.isNotEmpty().let { "https://i.ytimg.com/vi/$youtubeIdentity/hqdefault.jpg" },
+            thumbnail = trackIdentifier.isNotEmpty().let { "https://i.ytimg.com/vi/$trackIdentifier/hqdefault.jpg" },
             fields = fields,
             actionRowsMap = actionRowsMap,
             footerText = footerText,
@@ -217,11 +244,30 @@ class TextChannelServiceImpl(
         ).queue()
     }
 
+    override fun sendPleaseEnterVoiceChannel(channel: TextChannel) {
+        sendEmbed(
+            channel = channel as TextChannel,
+            title = "음성채널에 들어가주세요.",
+            description = "노래를 추가하기 전에 음성채널에 들어가주세요."
+        )
+    }
+
+    override fun sendDefaultMessage(channel: TextChannel) {
+        val title = "${TEXT_CHANNEL_NAME}의 현재 버전은 $BOT_VERSION 입니다."
+        val description = "노래 제목을 검색해보세요!"
+        // 메세지 임베드 값 생성
+        sendEmbed(
+            channel = channel,
+            title = title,
+            description = description
+        )
+    }
+
     override fun sendFirstMessage(
         channel: TextChannel,
-        title: String,
-        description: String
     ) {
+        val title = "${TEXT_CHANNEL_NAME}의 현재 버전은 $BOT_VERSION 입니다."
+        val description = "노래 제목을 검색해보세요!"
         // 메세지 임베드 값 생성
         val embed: MessageEmbed = EmbedBuilder(
             title = title,
@@ -244,20 +290,6 @@ class TextChannelServiceImpl(
                     lastMessageId = it.id
                 )
             )
-        }
-    }
-
-    override fun updateActionRows(
-        actionRowsMap: Map<ComponentTypes, List<ItemComponent>>,
-        sendMessageEmbeds: MessageEditAction
-    ) {
-        if (actionRowsMap.isNotEmpty()) {
-            var components: List<ItemComponent> = mutableListOf()
-            actionRowsMap.forEach { (_, value) ->
-                log.info("updateActionRows : $value")
-                components = components.plus(value)
-            }
-            sendMessageEmbeds.setActionRow(components)
         }
     }
 }

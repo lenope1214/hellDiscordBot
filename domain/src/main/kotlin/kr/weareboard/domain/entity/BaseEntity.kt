@@ -1,4 +1,4 @@
-package kr.weareboard.werewolf.domain.entity
+package kr.weareboard.domain.entity
 
 import org.hibernate.annotations.*
 import org.springframework.data.annotation.CreatedDate

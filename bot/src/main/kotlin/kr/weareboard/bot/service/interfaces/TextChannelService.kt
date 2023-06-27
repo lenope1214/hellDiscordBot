@@ -38,11 +38,10 @@ interface TextChannelService {
         footerIconUrl: String? = null
     )
 
-    fun sendFirstMessage(
-        channel: TextChannel,
-        title: String,
-        description: String
-    )
+    fun sendPleaseEnterVoiceChannel(channel: TextChannel)
+
+    fun sendDefaultMessage(channel: TextChannel)
+    fun sendFirstMessage(channel: TextChannel)
 
     fun updateActionRows(
         actionRowsMap: Map<ComponentTypes, List<ItemComponent>>,

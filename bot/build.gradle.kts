@@ -1,3 +1,7 @@
+plugins {
+    val kotlinVersion: String by System.getProperties() // 1.8.10
+    kotlin("jvm") version kotlinVersion
+}
 repositories {
     mavenCentral() // everything else
     maven("https://m2.dv8tion.net/releases") // jda
@@ -8,7 +12,7 @@ dependencies {
     val querydslVersion: String by System.getProperties() // 5.0.0
     val kotlinVersion: String by System.getProperties() // 1.8.10
     val junitVersion: String by System.getProperties() // "4.13.2"
-    val jdaVersion: String by System.getProperties() // "5.0.0-beta.4"
+    val jdaVersion: String by System.getProperties() // "5.0.0-beta.11"
     val dotenvVersion: String by System.getProperties() // "6.4.1"
 
     api(project(":domain"))
