@@ -16,5 +16,5 @@ interface BotService {
         guild: Guild,
         channel: TextChannel
     ): Boolean
-    fun leaveBot(guild: Guild, channel: TextChannel): Boolean
+    fun leaveBot(guild: Guild, channel: TextChannel, member: Member?): Boolean
 }

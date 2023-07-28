@@ -38,6 +38,19 @@ interface TextChannelService {
         footerIconUrl: String? = null
     )
 
+    fun sendEmbedWithDefaultMessage(
+        channel: TextChannel,
+        url: String = "",
+        title: String = "",
+        description: String = "",
+        author: String = "",
+        thumbnail: String? = null,
+        fields: List<MessageEmbed.Field> = listOf(),
+        actionRowsMap: Map<ComponentTypes, List<ItemComponent>> = mapOf(),
+        footerText: String? = null,
+        footerIconUrl: String? = null
+    )
+
     fun sendPleaseEnterVoiceChannel(channel: TextChannel)
 
     fun sendDefaultMessage(channel: TextChannel)

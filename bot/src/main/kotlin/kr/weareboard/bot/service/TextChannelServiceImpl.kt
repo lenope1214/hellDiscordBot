@@ -36,7 +36,7 @@ import org.springframework.stereotype.Service
 @Service
 class TextChannelServiceImpl(
     private val guildRepository: GuildRepository,
-    private val musicHistoryRepository: MusicHistoryRepository
+    private val musicHistoryRepository: MusicHistoryRepository,
 ) : TextChannelService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -90,7 +90,11 @@ class TextChannelServiceImpl(
             log.info("PlayTrackInfo : $it")
         }
 
-        val tracks = playTrackInfoList.map { it.track }
+        val tracks = playTrackInfoList
+            .map { it.track }
+            .filterNotNull()
+
+
         var fields = mutableListOf<Field>()
         val addedBy = playTrackInfoList.first().addedBy
         // 등록자 정보 출력
@@ -157,15 +161,19 @@ class TextChannelServiceImpl(
         val menu = StringSelectMenu(
             customId = "trackBox",
             placeholder = "StringSelectMenu",
-            options = trackNames.mapIndexed { index, trackName ->
-                log.info("trackName : $trackName")
-                log.info("index : $index")
-                SelectOption(
-                    trackName,
-                    index.toString(),
-                    default = index == 0
-                )
-            }
+            options = trackNames
+                // 26개 이상이면 에러가 발생하기 떄문에 10개만 출력하는것으로 수정
+                .take(10)
+
+                .mapIndexed { index, trackName ->
+                    log.info("trackName : $trackName")
+                    log.info("index : $index")
+                    SelectOption(
+                        trackName,
+                        index.toString(),
+                        default = index == 0
+                    )
+                }
         )
 
         var actionRowsMap: Map<ComponentTypes, List<ActionComponent>> = mapOf(
@@ -242,6 +250,36 @@ class TextChannelServiceImpl(
             },
             replace = true
         ).queue()
+    }
+
+    override fun sendEmbedWithDefaultMessage(
+        channel: TextChannel,
+        url: String,
+        title: String,
+        description: String,
+        author: String,
+        thumbnail: String?,
+        fields: List<Field>,
+        actionRowsMap: Map<ComponentTypes, List<ItemComponent>>,
+        footerText: String?,
+        footerIconUrl: String?
+    ) {
+        sendEmbed(
+            channel = channel,
+            url = url,
+            title = title,
+            description = description,
+            author = author,
+            thumbnail = thumbnail,
+            fields = fields,
+            actionRowsMap = actionRowsMap,
+            footerText = footerText,
+            footerIconUrl = footerIconUrl
+        )
+        Thread {
+            Thread.sleep(5 * 1000) // 5초 뒤에 기본 메세지를 보냄
+            sendDefaultMessage(channel)
+        }.start()
     }
 
     override fun sendPleaseEnterVoiceChannel(channel: TextChannel) {

@@ -1,12 +1,30 @@
 package kr.weareboard.bot.listeners
 
+import kr.weareboard.bot.common.isCorrectPrefix
+import kr.weareboard.bot.common.isValidTextChannel
+import kr.weareboard.bot.common.parseCommand
 import kr.weareboard.bot.domain.PlayerManager
+import kr.weareboard.bot.domain.enums.EmojiValue
+import kr.weareboard.bot.exception.InvalidTextChannel
+import kr.weareboard.bot.listeners.music.GambleCommand
+import kr.weareboard.bot.listeners.music.PlayCommand
+import kr.weareboard.bot.listeners.music.SkipCommand
+import kr.weareboard.bot.listeners.music.StopCommand
+import kr.weareboard.bot.music.status.getRepeatEmoji
+import kr.weareboard.bot.music.status.getRepeatText
+import kr.weareboard.bot.service.interfaces.TextChannelService
 import kr.weareboard.bot.utils.KoreanUtil
 import kr.weareboard.main.BOT_ID
+import kr.weareboard.main.NOTICE_FLAG
 import kr.weareboard.main.TEXT_CHANNEL_NAME
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
+import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
+import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
@@ -17,31 +35,32 @@ import org.springframework.stereotype.Component
 
 @Component
 class DefaultListener(
-    private val playerManager: PlayerManager
+    private val playerManager: PlayerManager,
+    private val playCommand: PlayCommand,
+    private val skipCommand: SkipCommand,
+    private val stopCommand: StopCommand,
+    private val gambleCommand: GambleCommand,
+    private val textChannelService: TextChannelService,
 ) : ListenerAdapter() {
     val log = LoggerFactory.getLogger(DefaultListener::class.java)
 
-    fun makeMessage(event: SlashCommandInteractionEvent, message: String) {
-        event.reply(message).setEphemeral(false).queue()
-    }
 
-    override fun onReady(event: ReadyEvent) {
-        log.info("Logged in as ${event.jda.selfUser.name}")
+    override fun onGuildReady(event: GuildReadyEvent) {
+        val guild = event.guild
+        val channels = guild.getTextChannelsByName(TEXT_CHANNEL_NAME, true) as List<TextChannel>
+        channels.forEach { channel ->
+            log.info("채널 ${channel.name}에 메세지를 삭제합니다.")
+            textChannelService.deleteAllMessages(channel)
+            log.info("채널 ${channel.name}에 메세지를 삭제했습니다.")
+        }
 
-        // Sets the global command list to the provided commands (removing all others)
+        Thread.sleep(500)
 
-        // TODO addCommands는 일일 제한이 있어서 테스트 시에 조심해야 함
-        event.jda.updateCommands().addCommands(
-            Commands.slash("ping", "Calculate ping of the bot"),
-            Commands.slash("놀리기", "대상을 놀립니다.")
-                .addOption(
-                    OptionType.STRING,
-                    "nickname",
-                    "놀릴 대상의 닉네임(이름)을 입력해주세요",
-                    true
-                ),
-            Commands.slash("사실부탁임", "사실부탁임 출력")
-        ).queue()
+        channels.forEach { channel ->
+            log.info("채널 ${channel.name}에 메세지를 보냅니다.")
+            textChannelService.sendFirstMessage(channel = channel)
+            log.info("채널 ${channel.name}에 메세지를 보냈습니다.")
+        }
     }
 
     override fun onGuildVoiceUpdate(event: GuildVoiceUpdateEvent) {
@@ -75,83 +94,142 @@ class DefaultListener(
         }
     }
 
-    override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
-        // make sure we handle the right command
-        // 만약 개인채팅이면 "개인 채팅에서 사용은 불가능합니다." 메세지와 함께 종료
-        if (event.guild == null) {
-            event.reply("개인 채팅에서 사용은 불가능합니다.").setEphemeral(true).queue()
+
+    override fun onMessageReceived(event: MessageReceivedEvent) {
+        val contentRaw = event.message.contentRaw
+        val member = event.member // request user infomation
+
+        try {
+            isValidTextChannel(event.channel) // 불가능한 채널이면 InvalidTextChannel 예외 발생
+
+            if (
+                member?.user?.isBot == true || // 봇의 메세지는 처리하지 않음
+                contentRaw.isEmpty() &&
+                !contentRaw.contains(" ") &&
+                !contentRaw.isCorrectPrefix() &&
+                contentRaw.length < 3
+            ) {
+                return
+            }
+        } catch (e: InvalidTextChannel) {
             return
         }
-        when (event.name) {
-            "ping" -> {
-                val time = System.currentTimeMillis()
-                event.reply("Pong!").setEphemeral(false) // reply or acknowledge
-                    .flatMap { event.hook.editOriginalFormat("Pong: %d ms", System.currentTimeMillis() - time) }
-                    .queue()
+        var command = event.message.contentRaw.parseCommand()
+        if (command == "") {
+            command = "playcommand"
+        }
+        when (command) {
+            in NOTICE_FLAG -> {
+                // 공지사항은 아무런 처리를 하지 않음.
+                return
             }
 
-            "놀리기" -> {
-                if (!event.member?.hasPermission(Permission.MESSAGE_SEND)!!) {
-                    event.reply("You cannot Send Message ;)").setEphemeral(true).queue()
-                    return
-                }
-                val nickname = event.getOption("nickname", OptionMapping::getAsString)
-                if (nickname.isNullOrBlank()) {
-                    event.reply("닉네임을 입력해주세요").setEphemeral(true).queue()
-                }
-
-                // get mention info
-//                val mention = event.getOption("nickname", OptionMapping::getAsMentionable)
-//                val mentionName = mention?.asMention?.replace("@", "")?.replace("!", "")
-
-                val str = """
-                    부럽다
-
-                    부러워
-
-                    앞에 걷는 저 사람이 부러워
-
-                    뒷모습밖에 보이지 않지만 부러워
-
-                    나도 되고 싶어
-
-                    나도 `$nickname`${KoreanUtil.getCompleteWord(nickname!!, "이", "가")} 되고 싶어
-
-                    너였구나
-
-                    앞에서 걷던 그 사람이 너였어
-
-                    너만 보면 내 세상이 무너져
-
-                    그리고
-
-                    지금도 무너지고 있다
-                """.trimIndent() // 앞뒤공백제거
-
-                makeMessage(event, str)
+            in stopCommand.commands -> {
+                stopCommand.onAction(event)
             }
 
-            "사실부탁임" -> {
-                makeMessage(
-                    event,
-                    """
-                    사실 부탁임...
+            in skipCommand.commands -> {
+                skipCommand.onAction(event)
+            }
 
-                    근데 어쩔 수 없음 ㅠㅠ
+            in gambleCommand.commands -> {
+                gambleCommand.onAction(event)
+            }
+            // stop skip 외에는 플레이어 커맨드로 처리
+            else -> {
+                log.info("play 커맨드로 넘어옴")
+                playCommand.onAction(event)
+            }
+        }
+    }
 
-                    내가 뭘 할 수 있는 게 없음 ㅜㅜㅜㅜ
+    override fun onGenericSelectMenuInteraction(event: GenericSelectMenuInteractionEvent<*, *>) {
+        log.info("onGenericSelectMenuInteraction - ${event.componentId}")
+        log.info("getComponent : ${event.component}")
+        when (event.componentId) {
+            "trackBox" -> {
+                val values: List<Int> = event.values.map {
+                    it as String
+                    // 숫자 외 제거
+                    it.replace("/[^0-9]/g", "")
+                    log.info("value: ${it.toLong()}")
+                    it.toInt()
+                }
 
-                    `${event.user.name}`${
-                    KoreanUtil.getCompleteWord(
-                        event.user.name!!,
-                        "은",
-                        "는"
-                    )
-                    } 좆밥 새끼임 ㅠ
-
-                    존나 화내거나 욕하는 거 말고 할 수 있는 게 없음 ㅠㅠ
-                    """.trimIndent()
+                playerManager.jumpTo(
+                    event.channel as TextChannel,
+                    values[0],
+                    event.member!!
                 )
+            }
+        }
+    }
+
+    override fun onButtonInteraction(event: ButtonInteractionEvent) {
+        // logging event info
+        log.info("onButtonInteraction - ${event.componentId}")
+//        log.info("${event.interaction}")
+        when (event.componentId) {
+            "playButton" -> {
+                try {
+                    // 기존 버튼 수정
+                    event.editButton(
+                        event.component
+                            .withId("pauseButton")
+                            .withLabel("일시정지")
+                            .withEmoji(EmojiValue.PAUSE.fromUnicode())
+                    ).queue()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                playerManager.resume(event.channel as TextChannel)
+            }
+
+            "pauseButton" -> {
+                try {
+                    // 기존 버튼 수정
+                    event.editButton(
+                        event.component
+                            .withId("playButton")
+                            .withLabel("재생")
+                            .withEmoji(EmojiValue.PLAY.fromUnicode())
+                    ).queue()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                playerManager.pause(event.channel as TextChannel)
+            }
+
+            "stopButton" -> {
+                playerManager.stop(event.channel as TextChannel, event.member!!)
+            }
+
+            "skipButton" -> {
+//                val isPlayNextTrack =
+                playerManager.next(event.channel as TextChannel, event.member!!)
+            }
+
+            "prevButton" -> {
+                playerManager.prevTrack(event.channel as TextChannel)
+            }
+
+            "repeatButton" -> {
+                log.info("반복버튼 눌림")
+                val beforeEmoji = event.button.emoji
+                val isRepeat = beforeEmoji == EmojiValue.INFINITY.fromUnicode()
+                try {
+                    // 기존 버튼 수정
+                    event.editButton(
+                        event.component
+                            .withLabel(getRepeatText(isRepeat))
+                            .withEmoji(getRepeatEmoji(isRepeat))
+                    ).queue()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                log.info("process repeat")
+                playerManager.repeat(event.channel as TextChannel)
+                log.info("end process repeat")
             }
         }
     }

@@ -30,7 +30,11 @@ class CommandListener(
 
         when (raw.lowercase()) {
             PREFIX + "help" -> {
-                event.channel.sendMessage("도움말").queue()
+                event.channel.sendMessage("""
+                    ${PREFIX}help : 도움말을 보여줍니다.
+                    ${PREFIX}join : 봇이 명령어 입력한 사람이 존재하는 음성채널에 들어갑니다.
+                    ${PREFIX}leave : 봇이 음성채널에서 나갑니다.
+                """.trimIndent()).queue()
             }
 
             PREFIX + "shutdown" -> {
@@ -51,7 +55,7 @@ class CommandListener(
             PREFIX + "leave" -> {
                 log.info("leave bot by username : ${event.author.name}")
                 val channel = event.channel as TextChannel
-                botService.leaveBot(event.guild, channel)
+                botService.leaveBot(event.guild, channel, event.member)
             }
         }
     }

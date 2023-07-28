@@ -106,7 +106,11 @@ class PlayerManagerImpl(
 
                 override fun noMatches() {
                     log.info("재생할 영상(노래)을 찾을 수 없습니다.: $trackUrl")
-                    channel.sendMessage("No matches found for $trackUrl").queue()
+                    textChannelService.sendEmbed(
+                        channel = channel,
+                        title = "재생할 영상(노래)을 찾을 수 없습니다."
+                    )
+//                    channel.sendMessage("No matches found for $trackUrl").queue()
                 }
 
                 /**
@@ -258,7 +262,7 @@ class PlayerManagerImpl(
 
     override fun stop(
         channel: TextChannel,
-        stopedBy: Member?
+        stopedBy: Member?,
     ) {
         log.info("resetTrack")
         val guild = channel.guild
@@ -291,7 +295,7 @@ class PlayerManagerImpl(
                 log.info("다른 사람이 노래를 추가했으므로 나가지 않음")
                 return@Thread
             }
-            leftChannel(guild, channel)
+            leftChannel(guild, channel, stopedBy)
         }.start()
 
         Thread {
@@ -355,7 +359,7 @@ class PlayerManagerImpl(
         }
     }
 
-    override fun leftChannel(guild: Guild, channel: TextChannel) {
-        botService.leaveBot(guild, channel)
+    override fun leftChannel(guild: Guild, channel: TextChannel, member: Member?) {
+        botService.leaveBot(guild, channel, member)
     }
 }

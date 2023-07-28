@@ -14,7 +14,6 @@ class Config {
             "TOKEN",
             "BOT_ID",
             "PREFIX",
-            "TEXT_CHANNEL_ID",
             "TEXT_CHANNEL_NAME"
         )
         private val log: Logger = LoggerFactory.getLogger(Config::class.java)
